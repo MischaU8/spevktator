@@ -6,6 +6,7 @@ import dateparser
 import datetime
 import httpx
 import os
+import random
 import re
 import sqlite_utils
 from sqlite_utils.utils import sqlite3
@@ -20,6 +21,7 @@ PROXIES = "http://localhost:8888"
 VK_BASE_URL = "https://m.vk.com"
 DEFAULT_PAGE_LIMIT = 5
 DEFAULT_DELAY = 3
+DEFAULT_LOOP_DELAY = 60
 
 
 class VKDomainParamType(click.ParamType):
@@ -33,6 +35,7 @@ class VKDomainParamType(click.ParamType):
             return value
         else:
             self.fail(f"{value!r} is not a valid VK domain", param, ctx)
+
 
 VK_DOMAIN = VKDomainParamType()
 
@@ -68,122 +71,152 @@ def cli():
     default=0,
     help="Number of pages to skip",
 )
+@click.option(
+    "-x",
+    "--loop",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Keep looping on domains",
+)
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domains", type=VK_DOMAIN, nargs=-1)
-def listen(db_path, domains, force, limit, offset):
+def listen(db_path, domains, force, limit, offset, loop):
     "Retrieve all wall posts from the VK communities specified by their domains"
+
+    # check CLI options for inconsitencies upfront
+    if loop and (force or offset):
+        click.echo("Can't loop with force or offset enabled")
+        return
+
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
 
-    for domain in domains:
-        pages_requested = 0
-        posts_added = 0
-        last_post_added = False
+    if loop:
+        # build indexes upfront when running in a loop, otherwise we'll do it afterwards
+        ensure_fts(db)
 
-        if not offset:
-            url = f"{VK_BASE_URL}/{domain}"
-        else:
-            url = f"{VK_BASE_URL}/{domain}?offset={offset}&own=1"
-        while True:
-            timestamp = datetime.datetime.utcnow().isoformat()
-            click.echo(f"Scraping VK domain '{domain}'... {url}")
-            r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=PROXIES)
-            with db.conn:
-                db["scrape_log"].insert(
-                    {
-                        "domain": domain,
-                        "timestamp": timestamp,
-                        "url": url,
-                        "status_code": r.status_code,
-                        "html": r.text.strip(),
-                    },
-                )
+    running = True
+    while running:
+        for domain in domains:
+            pages_requested = 0
+            posts_added = 0
+            last_post_added = False
 
-            assert r.status_code == 200, r.status_code
-            assert r.headers["content-type"] == "text/html; charset=utf-8", r.headers[
-                "content-type"
-            ]
-            pages_requested += 1
-
-            soup = BeautifulSoup(r.text, "html.parser")
-
-            for post_div in soup.find_all("div", class_="wall_item"):
-                post_id = post_div.find("a", class_="post__anchor")["name"].replace(
-                    "post", ""
-                )
-                post_date_raw = post_div.find("a", class_="wi_date").text
-                # Convert from moscow timezone
-                post_date_utc = dateparser.parse(
-                    post_date_raw,
-                    settings={"TIMEZONE": "Europe/Moscow", "TO_TIMEZONE": "UTC"},
-                ).isoformat()
-
-                post_text_div = post_div.find(class_="pi_text")
-                # TODO strip See more in post
-                post_text = post_text_div.text if post_text_div else None
-
-                post = {
-                    "id": post_id,
-                    "domain": domain,
-                    # "timestamp": timestamp,
-                    "date_utc": post_date_utc,
-                    "text": post_text,
-                }
-
-                with db.conn:
-                    try:
-                        if force:
-                            db["posts"].upsert(
-                                post,
-                                pk="id",  # , ignore=True
-                            )
-                        else:
-                            db["posts"].insert(
-                                post,
-                                pk="id",  # , ignore=True
-                            )
-                        click.echo(f"POST {domain}/{post_id} added")
-                        posts_added += 1
-                        last_post_added = True
-                    except sqlite3.IntegrityError:
-                        click.echo(f"POST {domain}/{post_id} already exists, skipping")
-                        last_post_added = False
-
-            if "PYTEST_CURRENT_TEST" not in os.environ:
-                time.sleep(DEFAULT_DELAY)
-
-            #  Should we scrape more?
-            click.echo(
-                f"last_post_added={last_post_added} page: {pages_requested} / {limit}"
-            )
-            if not force:
-                if posts_added == 0:
-                    # XXX unless force
-                    click.echo(f"Nothing added, done with {domain}")
-                    break
-                elif not last_post_added:
-                    # XXX unless force
-                    click.echo(f"Last post not added, done with {domain}")
-                    break
-            if pages_requested < limit:
-                # <div class="show_more_wrap"><a class="show_more" href="/life?offset=5&own=1" rel="noopener">Show more</a></div>
-                show_more_div = soup.find("div", class_="show_more_wrap")
-                if show_more_div:
-                    show_more_href = show_more_div.a["href"]
-                    url = f"{VK_BASE_URL}{show_more_href}"
-                    click.echo(f"next url will be {url}")
-                else:
-                    click.echo("Show more link not found, aborting")
-                    break
+            if not offset:
+                url = f"{VK_BASE_URL}/{domain}"
             else:
-                click.echo(f"Nothing more to scrape for {domain}")
-                break
+                url = f"{VK_BASE_URL}/{domain}?offset={offset}&own=1"
+            while True:
+                timestamp = datetime.datetime.utcnow().isoformat()
+                click.echo(f"Scraping VK domain '{domain}'... {url}")
+                r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=PROXIES)
+                with db.conn:
+                    db["scrape_log"].insert(
+                        {
+                            "domain": domain,
+                            "timestamp": timestamp,
+                            "url": url,
+                            "status_code": r.status_code,
+                            "html": r.text.strip(),
+                        },
+                    )
 
-    ensure_fts(db)
+                assert r.status_code == 200, r.status_code
+                assert (
+                    r.headers["content-type"] == "text/html; charset=utf-8"
+                ), r.headers["content-type"]
+                pages_requested += 1
+
+                soup = BeautifulSoup(r.text, "html.parser")
+
+                for post_div in soup.find_all("div", class_="wall_item"):
+                    post_id = post_div.find("a", class_="post__anchor")["name"].replace(
+                        "post", ""
+                    )
+                    post_date_raw = post_div.find("a", class_="wi_date").text
+                    # Convert from moscow timezone
+                    post_date_utc = dateparser.parse(
+                        post_date_raw,
+                        settings={"TIMEZONE": "Europe/Moscow", "TO_TIMEZONE": "UTC"},
+                    ).isoformat()
+
+                    post_text_div = post_div.find(class_="pi_text")
+                    # TODO strip See more in post
+                    post_text = post_text_div.text if post_text_div else None
+
+                    post = {
+                        "id": post_id,
+                        "domain": domain,
+                        # "timestamp": timestamp,
+                        "date_utc": post_date_utc,
+                        "text": post_text,
+                    }
+
+                    with db.conn:
+                        try:
+                            if force:
+                                db["posts"].upsert(
+                                    post,
+                                    pk="id",  # , ignore=True
+                                )
+                            else:
+                                db["posts"].insert(
+                                    post,
+                                    pk="id",  # , ignore=True
+                                )
+                            click.echo(f"POST {domain}/{post_id} added")
+                            posts_added += 1
+                            last_post_added = True
+                        except sqlite3.IntegrityError:
+                            click.echo(
+                                f"POST {domain}/{post_id} already exists, skipping"
+                            )
+                            last_post_added = False
+
+                if "PYTEST_CURRENT_TEST" not in os.environ:
+                    time.sleep(DEFAULT_DELAY)
+
+                #  Should we scrape more?
+                click.echo(
+                    f"last_post_added={last_post_added} page: {pages_requested} / {limit}"
+                )
+                if not force:
+                    if posts_added == 0:
+                        # XXX unless force
+                        click.echo(f"Nothing added, done with {domain}")
+                        break
+                    elif not last_post_added:
+                        # XXX unless force
+                        click.echo(f"Last post not added, done with {domain}")
+                        break
+                if pages_requested < limit:
+                    # <div class="show_more_wrap"><a class="show_more" href="/life?offset=5&own=1" rel="noopener">Show more</a></div>
+                    show_more_div = soup.find("div", class_="show_more_wrap")
+                    if show_more_div:
+                        show_more_href = show_more_div.a["href"]
+                        url = f"{VK_BASE_URL}{show_more_href}"
+                        click.echo(f"next url will be {url}")
+                    else:
+                        click.echo("Show more link not found, aborting")
+                        break
+                else:
+                    click.echo(f"Nothing more to scrape for {domain}")
+                    break
+
+        if not loop:
+            ensure_fts(db)
+            running = False
+        else:
+            click.echo(f"Done with all domains, sleeping {DEFAULT_LOOP_DELAY}s...")
+            if "PYTEST_CURRENT_TEST" not in os.environ:
+                time.sleep(DEFAULT_LOOP_DELAY)
+            # shuffle domains
+            random.shuffle(domains)
 
 
 def ensure_tables(db):
@@ -197,7 +230,8 @@ def ensure_tables(db):
                 "domain": str,
                 # "timestamp": str,
                 "date_utc": str,
-                "text": str},
+                "text": str,
+            },
             pk="id",
         )
     if "scrape_log" not in db.table_names():
