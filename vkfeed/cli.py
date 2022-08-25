@@ -100,7 +100,7 @@ def listen(db_path, domains, force, limit, offset, loop):
         # build indexes upfront when running in a loop, otherwise we'll do it afterwards
         ensure_fts(db)
 
-    domains = list(domains) # so we can shuffle them
+    domains = list(domains)  # so we can shuffle them
     running = True
     while running:
         random.shuffle(domains)
