@@ -1,0 +1,14 @@
+{
+    "databases": {
+        "vk": {
+            "tables": {
+                "posts": {
+                    "sort_desc": "date_utc"
+                },
+                "scrape_log": {
+                    "sort_desc": "timestamp"
+                }
+            }
+        }
+    }
+}
