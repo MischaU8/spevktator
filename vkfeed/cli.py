@@ -8,6 +8,7 @@ import httpx
 import os
 import re
 import sqlite_utils
+from sqlite_utils.utils import sqlite3
 import time
 
 
@@ -64,10 +65,22 @@ def listen(db_path, domains):
     # click.echo("Highest known ID = {}".format(id))
 
     for domain in domains:
-        click.echo("Scraping VK domain '{}'...".format(domain))
         timestamp = datetime.datetime.utcnow().isoformat()
 
-        r = httpx.get(f"https://m.vk.com/{domain}", headers=headers, proxies=proxies)
+        url = f"https://m.vk.com/{domain}"
+        click.echo(f"Scraping VK domain '{domain}'... {url}")
+        r = httpx.get(url, headers=headers, proxies=proxies)
+        with db.conn:
+            db["scrape_log"].insert(
+                {
+                    "domain": domain,
+                    "timestamp": timestamp,
+                    "url": url,
+                    "status_code": r.status_code,
+                    "html": r.text},
+                column_order=("domain", "timestamp", "url", "status_code", "html"),
+            )
+
         assert r.status_code == 200, r.status_code
         assert r.headers["content-type"] == "text/html; charset=utf-8", r.headers[
             "content-type"
@@ -80,7 +93,6 @@ def listen(db_path, domains):
             post_id = post_div.find("a", class_="post__anchor")["name"].replace(
                 "post", ""
             )
-            # post_id = post_div["id"]
             post_date_raw = post_div.find("a", class_="wi_date").text
             # Convert from moscow timezone
             post_date_utc = dateparser.parse(
@@ -88,29 +100,27 @@ def listen(db_path, domains):
                 settings={"TIMEZONE": "Europe/Moscow", "TO_TIMEZONE": "UTC"},
             ).isoformat()
             post_text = post_div.find(class_="pi_text").text
-            post_html = str(post_div)
+            # post_html = str(post_div)
+            # TODO strip see more
 
             post = {
                 "id": post_id,
                 "domain": domain,
                 "timestamp": timestamp,
-                "date_raw": post_date_raw,
                 "date_utc": post_date_utc,
-                "text": post_text,
-                "html": post_html,
+                "text": post_text
             }
 
-            click.echo(f"POST: {domain}/{post_id}")
-
-            # TODO strip see more
-            # TODO preload_data
-
             with db.conn:
-                db["posts"].upsert(
-                    post,
-                    column_order=("id", "domain", "timestamp", "date", "text"),
-                    pk="id",
-                )
+                try:
+                    db["posts"].insert(
+                        post,
+                        column_order=("id", "domain", "timestamp", "date_utc", "text"),
+                        pk="id"  #, ignore=True
+                    )
+                    click.echo(f"POST {domain}/{post_id} added")
+                except sqlite3.IntegrityError:
+                    click.echo(f"POST {domain}/{post_id} already exists, skipping")
 
         if "PYTEST_CURRENT_TEST" not in os.environ:
             time.sleep(3)
@@ -129,11 +139,19 @@ def ensure_tables(db):
                 "domain": str,
                 "timestamp": str,
                 "date_utc": str,
-                "date_raw": str,
-                "text": str,
-                "html": str,
+                "text": str
             },
             pk="id",
+        )
+    if "scrape_log" not in db.table_names():
+        db["scrape_log"].create(
+            {
+                "domain": str,
+                "timestamp": str,
+                "url": str,
+                "status_code": int,
+                "html": str,
+            },
         )
 
 
