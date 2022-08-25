@@ -1,0 +1,15 @@
+.venv/
+.vscode/
+__pycache__/
+build/
+
+*.csv
+*.db
+*.jl
+*.log
+*.pyc
+
+dump_*.html
+
+# Ignore Poetry lock file for now...
+poetry.lock
