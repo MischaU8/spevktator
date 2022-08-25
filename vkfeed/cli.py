@@ -20,8 +20,8 @@ DEFAULT_HEADERS = {
 PROXIES = "http://localhost:8888"
 VK_BASE_URL = "https://m.vk.com"
 DEFAULT_PAGE_LIMIT = 5
-DEFAULT_DELAY = 3
-DEFAULT_LOOP_DELAY = 60
+DEFAULT_DELAY = 5
+DEFAULT_LOOP_DELAY = 300
 
 
 class VKDomainParamType(click.ParamType):
@@ -100,8 +100,10 @@ def listen(db_path, domains, force, limit, offset, loop):
         # build indexes upfront when running in a loop, otherwise we'll do it afterwards
         ensure_fts(db)
 
+    domains = list(domains) # so we can shuffle them
     running = True
     while running:
+        random.shuffle(domains)
         for domain in domains:
             pages_requested = 0
             posts_added = 0
@@ -215,8 +217,6 @@ def listen(db_path, domains, force, limit, offset, loop):
             click.echo(f"Done with all domains, sleeping {DEFAULT_LOOP_DELAY}s...")
             if "PYTEST_CURRENT_TEST" not in os.environ:
                 time.sleep(DEFAULT_LOOP_DELAY)
-            # shuffle domains
-            random.shuffle(domains)
 
 
 def ensure_tables(db):
