@@ -8,7 +8,7 @@ import re
 import sqlite_utils
 import time
 
-import scraper
+import vkfeed.scraper as scraper
 
 
 class VKDomainParamType(click.ParamType):
@@ -58,34 +58,47 @@ def cli():
     default=0,
     help="Number of pages to skip",
 )
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+@click.argument("domains", type=VK_DOMAIN, nargs=-1, required=True)
+def fetch(db_path, domains, force, limit, offset):
+    "Retrieve all wall posts from the VK communities specified by their domains"
+
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+
+    scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
+    scraper.fetch_domains(db, domains, force, limit, offset, scrape_delay)
+
+    ensure_fts(db)
+
+
+@cli.command()
 @click.option(
-    "-x",
-    "--loop",
-    is_flag=True,
+    "-l",
+    "--limit",
+    type=click.IntRange(1, 10, clamp=True),
     show_default=True,
-    default=False,
-    help="Keep looping on domains",
+    default=scraper.DEFAULT_PAGE_LIMIT,
+    help="Number of pages to be requested",
 )
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
-@click.argument("domains", type=VK_DOMAIN, nargs=-1)
-def listen(db_path, domains, force, limit, offset, loop):
-    "Retrieve all wall posts from the VK communities specified by their domains"
-
-    # check CLI options for inconsitencies upfront
-    if loop and (force or offset):
-        click.echo("Can't loop with force or offset enabled")
-        return
+@click.argument("domains", type=VK_DOMAIN, nargs=-1, required=True)
+def listen(db_path, domains, limit):
+    "Continuously retrieve all wall posts from the VK communities specified by their domains"
 
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
 
-    if loop:
-        # build text indexes upfront when running in a loop, otherwise we'll do it afterwards
-        ensure_fts(db)
+    # build text indexes upfront when running in a loop, otherwise we'll do it afterwards
+    ensure_fts(db)
 
     domains = list(domains)  # so we can shuffle them
     running = True
@@ -94,17 +107,11 @@ def listen(db_path, domains, force, limit, offset, loop):
         if "PYTEST_CURRENT_TEST" not in os.environ:
             random.shuffle(domains)
 
-        scraper.fetch_domains(db, domains, force, limit, offset, scrape_delay)
+        scraper.fetch_domains(db, domains, False, limit, 0, scrape_delay)
 
-        if not loop:
-            ensure_fts(db)
-            running = False
-        else:
-            click.echo(
-                f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s..."
-            )
-            if scrape_delay:
-                time.sleep(scraper.DEFAULT_LOOP_DELAY)
+        click.echo(f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s...")
+        if scrape_delay:
+            time.sleep(scraper.DEFAULT_LOOP_DELAY)
 
 
 def ensure_tables(db):
@@ -138,7 +145,3 @@ def ensure_fts(db):
     table_names = set(db.table_names())
     if "posts" in table_names and "posts_fts" not in table_names:
         db["posts"].enable_fts(["text"], create_triggers=True)
-
-
-if __name__ == "__main__":
-    cli()

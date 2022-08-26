@@ -116,7 +116,10 @@ def fetch_domains(
 
             #  Should we scrape more?
             click.secho(
-                f"{timestamp} posts_added={result.posts_added} last_post_added={result.last_post_added} page: {pages_requested} / {limit}",
+                (
+                    f"{timestamp} posts_added={result.posts_added} last_post_added={result.last_post_added}"
+                    f" page: {pages_requested} / {limit}"
+                ),
                 fg="green",
             )
             if scrape_delay:

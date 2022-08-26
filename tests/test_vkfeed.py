@@ -3,7 +3,6 @@ import pathlib
 import pytest
 from pytest_httpx import HTTPXMock
 from click.testing import CliRunner
-import sqlite_utils
 from vkfeed import cli
 
 
