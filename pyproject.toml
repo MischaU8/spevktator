@@ -24,6 +24,9 @@ pytest-httpx = "^0.21.0"
 flake8 = "^5.0.4"
 black = "^22.6.0"
 
+[tool.poetry.scripts]
+vkfeed = "vkfeed.cli:cli"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
