@@ -21,8 +21,9 @@ dateparser = "^1.1.1"
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 pytest-httpx = "^0.21.0"
-flake8 = "^5.0.4"
 black = "^22.6.0"
+flake8 = "^5.0.4"
+flake8-black = "^0.3.3"
 
 [tool.poetry.scripts]
 vkfeed = "vkfeed.cli:cli"
