@@ -63,6 +63,50 @@ def install():
     default=scraper.DEFAULT_PAGE_LIMIT,
     help="Number of pages to be requested",
 )
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+@click.argument("domain", type=VK_DOMAIN, required=True)
+def backfill(db_path, domain, force, limit):
+    "Retrieve the backlog of wall posts from the VK communities specified by their domain"
+
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+    ensure_views(db)
+
+    offset = next(
+        db.query(
+            "select count(*) as nr_posts from posts where domain = :domain",
+            params={"domain": domain},
+        )
+    )["nr_posts"]
+
+    click.echo(f"Scraping {limit} pages of posts for {domain}, starting at {offset}")
+
+    scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
+    scraper.fetch_domains(db, [domain], force, limit, offset, scrape_delay)
+    ensure_fts(db)
+
+
+@cli.command()
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Force all pages to be loaded",
+)
+@click.option(
+    "-l",
+    "--limit",
+    type=click.IntRange(1, 5000, clamp=True),
+    show_default=True,
+    default=scraper.DEFAULT_PAGE_LIMIT,
+    help="Number of pages to be requested",
+)
 @click.option(
     "-o",
     "--offset",
@@ -224,10 +268,12 @@ def stats(db_path):
     "Show statistics for the given database"
 
     db = sqlite_utils.Database(db_path)
-    rows = db.query("""
+    rows = db.query(
+        """
     select domain, count(*) as nr_posts, min(date_utc) as first, max(date_utc) as last
     from posts group by domain order by domain
-    """)
+    """
+    )
     click.echo(tabulate(list(rows), headers="keys"))
 
 
