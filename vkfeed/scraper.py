@@ -26,6 +26,7 @@ DEFAULT_LOOP_DELAY = 300
 class ProcessResult:
     posts_added: int = 0
     last_post_added: bool = False
+    earliest_post_date: str = None
 
 
 def process_page(
@@ -61,6 +62,11 @@ def process_page(
                 click.echo(f"POST {domain}/{post_id} {post_date_utc} added")
                 result.posts_added += 1
                 result.last_post_added = True
+                if (
+                    result.earliest_post_date is None
+                    or post_date_utc < result.earliest_post_date
+                ):
+                    result.earliest_post_date = post_date_utc
 
                 if post_text and dostoevsky_sentiment.model is not None:
                     sentiment_item = {"id": post_id}
@@ -91,6 +97,7 @@ def fetch_domains(
     limit: int,
     offset: int,
     scrape_delay=False,
+    until=None,
 ):
     for domain in domains:
         pages_requested = 0
@@ -127,7 +134,9 @@ def fetch_domains(
             #  Should we scrape more?
             click.secho(
                 (
-                    f"{timestamp} posts_added={result.posts_added} last_post_added={result.last_post_added}"
+                    f"{timestamp} posts_added={result.posts_added}"
+                    f" last_post_added={result.last_post_added}"
+                    f" earliest_post_date={result.earliest_post_date}"
                     f" page: {pages_requested} / {limit}"
                 ),
                 fg="green",
@@ -141,6 +150,9 @@ def fetch_domains(
                 elif not result.last_post_added:
                     click.echo(f"Last post not added, done with {domain}")
                     break
+            if until and result.earliest_post_date <= until:
+                click.echo(f"Until date {until} reached, done with {domain}")
+                break
             if pages_requested < limit:
                 show_more_div = soup.find("div", class_="show_more_wrap")
                 if show_more_div:
@@ -151,5 +163,5 @@ def fetch_domains(
                     click.secho("Show more link not found, aborting", fg="red")
                     break
             else:
-                click.echo(f"Nothing more to scrape for {domain}")
+                click.echo(f"Page limit {limit} reached, done with {domain}")
                 break

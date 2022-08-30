@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
-import click
-
 import os
 import random
 import re
+import time
+
+import click
+import dateparser
 import sqlite_utils
 from sqlite_utils.utils import chunks
 from tabulate import tabulate
-import time
-
-import vkfeed.scraper as scraper
 
 import vkfeed.dostoevsky_sentiment as dostoevsky_sentiment
+import vkfeed.scraper as scraper
 
 
 class VKDomainParamType(click.ParamType):
@@ -63,18 +63,31 @@ def install():
     default=scraper.DEFAULT_PAGE_LIMIT,
     help="Number of pages to be requested",
 )
+@click.option(
+    "-u",
+    "--until",
+    type=str,
+    show_default=True,
+    help="Date to go back to",
+)
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domain", type=VK_DOMAIN, required=True)
-def backfill(db_path, domain, force, limit):
+def backfill(db_path, domain, force, limit, until):
     "Retrieve the backlog of wall posts from the VK communities specified by their domain"
 
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
     ensure_views(db)
+
+    if until:
+        until = dateparser.parse(
+            until,
+            settings={"TIMEZONE": "UTC"},
+        ).isoformat()
 
     offset = next(
         db.query(
@@ -83,10 +96,12 @@ def backfill(db_path, domain, force, limit):
         )
     )["nr_posts"]
 
-    click.echo(f"Scraping {limit} pages of posts for {domain}, starting at {offset}")
+    click.echo(
+        f"Scraping max {limit} pages of posts for {domain}, starting at {offset}, until date {until}"
+    )
 
     scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
-    scraper.fetch_domains(db, [domain], force, limit, offset, scrape_delay)
+    scraper.fetch_domains(db, [domain], force, limit, offset, scrape_delay, until)
     ensure_fts(db)
 
 
