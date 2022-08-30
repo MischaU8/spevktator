@@ -65,20 +65,19 @@ def process_page(
                 if post_text and dostoevsky_sentiment.model is not None:
                     sentiment_item = {"id": post_id}
                     sentiment_item.update(dostoevsky_sentiment.predict([post_text])[0])
-
-                db["posts_sentiment"].insert(
-                    sentiment_item,
-                    pk="id",
-                    column_order=(
-                        "id",
-                        "positive",
-                        "negative",
-                        "neutral",
-                        "skip",
-                        "speech",
-                    ),
-                    replace=force,
-                )
+                    db["posts_sentiment"].insert(
+                        sentiment_item,
+                        pk="id",
+                        column_order=(
+                            "id",
+                            "positive",
+                            "negative",
+                            "neutral",
+                            "skip",
+                            "speech",
+                        ),
+                        replace=force,
+                    )
             except sqlite3.IntegrityError:
                 click.echo(f"POST {domain}/{post_id} already exists, skipping")
                 result.last_post_added = False
