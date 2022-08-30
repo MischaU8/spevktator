@@ -6,7 +6,7 @@
                     "sort_desc": "date_utc"
                 },
                 "scrape_log": {
-                    "sort_desc": "timestamp"
+                    "sort_desc": "rowid"
                 }
             }
         }
