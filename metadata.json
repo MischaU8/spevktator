@@ -3,9 +3,11 @@
         "vk": {
             "tables": {
                 "posts": {
+                    "size": 50,
                     "sort_desc": "date_utc"
                 },
                 "scrape_log": {
+                    "size": 5,
                     "sort_desc": "rowid"
                 }
             }
