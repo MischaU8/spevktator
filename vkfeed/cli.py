@@ -7,6 +7,7 @@ import random
 import re
 import sqlite_utils
 from sqlite_utils.utils import chunks
+from tabulate import tabulate
 import time
 
 import vkfeed.scraper as scraper
@@ -57,7 +58,7 @@ def install():
 @click.option(
     "-l",
     "--limit",
-    type=click.IntRange(1, 10, clamp=True),
+    type=click.IntRange(1, 5000, clamp=True),
     show_default=True,
     default=scraper.DEFAULT_PAGE_LIMIT,
     help="Number of pages to be requested",
@@ -68,7 +69,7 @@ def install():
     type=click.IntRange(0, 100, clamp=True),
     show_default=True,
     default=0,
-    help="Number of pages to skip",
+    help="Number of posts to skip",
 )
 @click.argument(
     "db_path",
@@ -211,6 +212,23 @@ def sentiment(db_path, table, text_column, output, reset):
                 foreign_keys=[("id", "posts", pk)],
             )
     click.echo(f"Sentiment for {sentiment_count} rows predicted")
+
+
+@cli.command()
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def stats(db_path):
+    "Show statistics for the given database"
+
+    db = sqlite_utils.Database(db_path)
+    rows = db.query("""
+    select domain, count(*) as nr_posts, min(date_utc) as first, max(date_utc) as last
+    from posts group by domain order by domain
+    """)
+    click.echo(tabulate(list(rows), headers="keys"))
 
 
 def ensure_tables(db):
