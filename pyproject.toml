@@ -17,6 +17,7 @@ scipy = "^1.9.0"
 concise-concepts = "^0.5.4"
 beautifulsoup4 = "^4.11.1"
 dateparser = "^1.1.1"
+dostoevsky = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

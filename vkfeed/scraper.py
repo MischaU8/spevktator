@@ -8,6 +8,8 @@ import sqlite_utils
 from sqlite_utils.utils import sqlite3
 import time
 
+import vkfeed.dostoevsky_sentiment as dostoevsky_sentiment
+
 
 DEFAULT_HEADERS = {
     "accept-language": "en-US,en;q=0.5",
@@ -55,19 +57,28 @@ def process_page(
 
         with db.conn:
             try:
-                if force:
-                    db["posts"].upsert(
-                        post,
-                        pk="id",  # , ignore=True
-                    )
-                else:
-                    db["posts"].insert(
-                        post,
-                        pk="id",  # , ignore=True
-                    )
+                db["posts"].insert(post, pk="id", replace=force)  # , ignore=True
                 click.echo(f"POST {domain}/{post_id} added")
                 result.posts_added += 1
                 result.last_post_added = True
+
+                if post_text and dostoevsky_sentiment.model is not None:
+                    sentiment_item = {"id": post_id}
+                    sentiment_item.update(dostoevsky_sentiment.predict([post_text])[0])
+
+                db["posts_sentiment"].insert(
+                    sentiment_item,
+                    pk="id",
+                    column_order=(
+                        "id",
+                        "positive",
+                        "negative",
+                        "neutral",
+                        "skip",
+                        "speech",
+                    ),
+                    replace=force,
+                )
             except sqlite3.IntegrityError:
                 click.echo(f"POST {domain}/{post_id} already exists, skipping")
                 result.last_post_added = False
