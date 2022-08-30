@@ -58,7 +58,7 @@ def process_page(
         with db.conn:
             try:
                 db["posts"].insert(post, pk="id", replace=force)  # , ignore=True
-                click.echo(f"POST {domain}/{post_id} added")
+                click.echo(f"POST {domain}/{post_id} {post_date_utc} added")
                 result.posts_added += 1
                 result.last_post_added = True
 
