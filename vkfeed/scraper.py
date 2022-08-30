@@ -103,6 +103,33 @@ def process_page(
     return result
 
 
+def next_url(domain, html, result, pages_requested, force, limit, until) -> str:
+    if not force:
+        if result.posts_added == 0:
+            click.echo(f"Nothing added, done with {domain}")
+            return None
+        elif not result.last_post_added:
+            click.echo(f"Last post not added, done with {domain}")
+            return None
+    if until and result.earliest_post_date <= until:
+        click.echo(f"Until date {until} reached, done with {domain}")
+        return None
+    if pages_requested < limit:
+        soup = BeautifulSoup(html, "html.parser")
+        show_more_div = soup.find("div", class_="show_more_wrap")
+        if show_more_div:
+            show_more_href = show_more_div.a["href"]
+            url = f"{VK_BASE_URL}{show_more_href}"
+            click.echo(f"next url will be {url}")
+            return url
+        else:
+            click.secho("Show more link not found, aborting", fg="red")
+            return None
+    else:
+        click.echo(f"Page limit {limit} reached, done with {domain}")
+        return None
+
+
 def fetch_domains(
     db: sqlite_utils.Database,
     domains: list,
@@ -140,7 +167,6 @@ def fetch_domains(
                 "content-type"
             ]
             pages_requested += 1
-
             result = process_page(db, domain, r.text, force)
 
             #  Should we scrape more?
@@ -155,26 +181,6 @@ def fetch_domains(
             )
             if scrape_delay:
                 time.sleep(DEFAULT_DELAY)
-            if not force:
-                if result.posts_added == 0:
-                    click.echo(f"Nothing added, done with {domain}")
-                    break
-                elif not result.last_post_added:
-                    click.echo(f"Last post not added, done with {domain}")
-                    break
-            if until and result.earliest_post_date <= until:
-                click.echo(f"Until date {until} reached, done with {domain}")
-                break
-            if pages_requested < limit:
-                soup = BeautifulSoup(r.text, "html.parser")
-                show_more_div = soup.find("div", class_="show_more_wrap")
-                if show_more_div:
-                    show_more_href = show_more_div.a["href"]
-                    url = f"{VK_BASE_URL}{show_more_href}"
-                    click.echo(f"next url will be {url}")
-                else:
-                    click.secho("Show more link not found, aborting", fg="red")
-                    break
-            else:
-                click.echo(f"Page limit {limit} reached, done with {domain}")
+            url = next_url(domain, r.text, result, pages_requested, force, limit, until)
+            if url is None:
                 break

@@ -319,7 +319,6 @@ def sentiment(db_path, table, text_column, output, reset):
         sql += f" and {pk} not in (select id from {output_table})"
 
     rows = db.query(sql, params=dict(params))
-
     count = get_count(db, sql, params)
 
     sentiment_count = 0
