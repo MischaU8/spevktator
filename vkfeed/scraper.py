@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import dateparser
 import datetime
 import httpx
+import re
 import sqlite_utils
 from sqlite_utils.utils import sqlite3
 import time
@@ -49,10 +50,14 @@ def process_page(
         post_id = post_div.find("a", class_="post__anchor")["name"].replace("post", "")
         post_date_raw = post_div.find("a", class_="wi_date").text
 
-        post_date_utc = dateparser.parse(
-            post_date_raw,
-            settings=dateparser_settings,
-        ).isoformat()
+        post_date_utc = (
+            dateparser.parse(
+                post_date_raw,
+                settings=dateparser_settings,
+            )
+            .replace(microsecond=0)
+            .isoformat()
+        )
 
         post_text_div = post_div.find(class_="pi_text")
         # TODO strip See more in post
@@ -67,6 +72,41 @@ def process_page(
             "text": post_text,
         }
 
+        post_buttons_div = post_div.find(class_="_wi_buttons")
+
+        # <div aria-hidden="true" class="svgIcon svgIcon-like_outline_24">
+        # <span class="PostBottomButtonReaction__label" aria-hidden="true">11</span>
+        # <span class="visually-hidden">1738 people reacted</span>
+        post_buttons_a = post_buttons_div.find_all("a", class_="PostBottomButton")
+        likes_text = (
+            post_buttons_a[0].parent.find_all("span", class_="visually-hidden")[-1].text
+        )
+        likes = int(re.sub(r" (person|people) reacted", "", likes_text))
+
+        # <div aria-hidden="true" class="svgIcon svgIcon-share_outline_24">
+        # <span class="PostBottomButton__label" aria-hidden="true">2</span>
+        shares = int(post_buttons_a[1]["aria-label"].replace(" Share", ""))
+
+        # <div class="PostRowBottomButtons__views">
+        # <span class=" wall_item_views" aria-label="262671 views">
+        views_div = post_buttons_div.find(class_="wall_item_views")
+        if views_div and "aria-label" in views_div.attrs:
+            views = int(re.sub(r" views?", "", views_div["aria-label"]))
+        else:
+            views = 0
+        metrics = {
+            "id": post_id,
+            "likes": likes,
+            "shares": shares,
+            "views": views,
+            "timestamp": relative_timestamp.replace(microsecond=0).isoformat(),
+        }
+        # post_explain_div = post_div.find(class_="wi_explain")
+        # if post_explain_div and "pinned post" in post_explain_div.text:
+        #     # only set when pinned, to prevent unsetting it when it gets unpinned
+        #     metrics["was_pinned"] = True
+
+        # XXX convert into upsert_all in outside loop
         with db.conn:
             try:
                 db["posts"].insert(post, pk="id", replace=force)
@@ -100,6 +140,12 @@ def process_page(
                 if verbose:
                     click.echo(f"POST {domain}/{post_id} already exists, skipping")
                 result.last_post_added = False
+
+            db["posts_metrics"].upsert(
+                metrics,
+                pk="id",
+                column_order=("id", "shares", "likes", "views", "timestamp"),
+            )
     return result
 
 
@@ -148,14 +194,14 @@ def fetch_domains(
             url = f"{VK_BASE_URL}/{domain}?offset={offset}&own=1"
 
         while True:
-            timestamp = datetime.datetime.utcnow().isoformat()
+            timestamp = datetime.datetime.utcnow()
             click.echo(f"Scraping VK domain '{domain}'... {url}")
             r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=PROXIES)
             with db.conn:
                 db["scrape_log"].insert(
                     {
                         "domain": domain,
-                        "timestamp": timestamp,
+                        "timestamp": timestamp.isoformat(),
                         "url": url,
                         "status_code": r.status_code,
                         "html": r.text.strip(),
@@ -167,7 +213,9 @@ def fetch_domains(
                 "content-type"
             ]
             pages_requested += 1
-            result = process_page(db, domain, r.text, force)
+            result = process_page(
+                db, domain, r.text, force, relative_timestamp=timestamp
+            )
 
             #  Should we scrape more?
             click.secho(

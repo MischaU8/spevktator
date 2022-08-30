@@ -84,10 +84,14 @@ def backfill(db_path, domain, force, limit, until):
     ensure_views(db)
 
     if until:
-        until = dateparser.parse(
-            until,
-            settings={"TIMEZONE": "UTC"},
-        ).isoformat()
+        until = (
+            dateparser.parse(
+                until,
+                settings={"TIMEZONE": "UTC"},
+            )
+            .replace(microsecond=0)
+            .isoformat()
+        )
 
     offset = next(
         db.query(
@@ -233,6 +237,7 @@ def rescrape(db_path, limit, verbose, reset):
     if reset:
         db["posts"].disable_fts()
         db["posts"].drop(True)
+        db["posts_metrics"].drop(True)
         db["posts_sentiment"].drop(True)
 
     ensure_tables(db)
@@ -263,11 +268,10 @@ def rescrape(db_path, limit, verbose, reset):
             )
             rescrape_count += result.posts_added
 
-    # build text indexes upfront when running in a loop, otherwise we'll do it afterwards
     ensure_fts(db)
     db["posts"].optimize()
 
-    click.echo(f"{count} pages, {rescrape_count} posts rescraped")
+    click.echo(f"rescraped {count} pages, {rescrape_count} posts inserted/updated")
 
 
 @cli.command()
@@ -382,6 +386,19 @@ def ensure_tables(db):
             pk="id",
             column_order=("id", "domain", "date_utc", "text"),
         )
+    if "posts_metrics" not in db.table_names():
+        db["posts_metrics"].create(
+            {
+                "id": str,
+                "likes": int,
+                "shares": int,
+                "views": int,
+                "timestamp": str,
+            },
+            pk="id",
+            column_order=("id", "likes", "shares", "views", "timestamp"),
+            foreign_keys=[("id", "posts")],
+        )
     if "posts_sentiment" not in db.table_names():
         db["posts_sentiment"].create(
             {
@@ -416,6 +433,15 @@ def ensure_tables(db):
 
 
 def ensure_views(db):
+    if "posts_metrics_view" not in db.view_names():
+        db.create_view(
+            "posts_metrics_view",
+            """
+        select posts.id, domain, date_utc, text, likes, shares, views
+        from posts join posts_metrics on posts.id = posts_metrics.id
+        order by likes desc
+        """,
+        )
     if "posts_sentiment_view" not in db.view_names():
         db.create_view(
             "posts_sentiment_view",
