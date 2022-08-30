@@ -103,6 +103,7 @@ def backfill(db_path, domain, force, limit, until):
     scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
     scraper.fetch_domains(db, [domain], force, limit, offset, scrape_delay, until)
     ensure_fts(db)
+    db["posts"].optimize()
 
 
 @cli.command()
@@ -147,6 +148,7 @@ def fetch(db_path, domains, force, limit, offset):
     scraper.fetch_domains(db, domains, force, limit, offset, scrape_delay)
 
     ensure_fts(db)
+    db["posts"].optimize()
 
 
 @cli.command()
@@ -186,6 +188,86 @@ def listen(db_path, domains, limit):
         click.echo(f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s...")
         if scrape_delay:
             time.sleep(scraper.DEFAULT_LOOP_DELAY)
+
+
+def get_count(db, sql, params) -> int:
+    "get count for progress bar"
+    return next(
+        db.query(
+            "with t as ({}) select count(*) as c from t".format(sql),
+            params=dict(params),
+        )
+    )["c"]
+
+
+@cli.command()
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    show_default=True,
+    default=0,
+    help="Number of pages to be processed",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Verbose output",
+)
+@click.option(
+    "-r", "--reset", is_flag=True, help="Start from scratch, deleting previous results"
+)
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def rescrape(db_path, limit, verbose, reset):
+    "Rescrape HTML pages from the scrape_log"
+
+    db = sqlite_utils.Database(db_path)
+
+    if reset:
+        db["posts"].disable_fts()
+        db["posts"].drop(True)
+        db["posts_sentiment"].drop(True)
+
+    ensure_tables(db)
+    ensure_views(db)
+
+    sql = "select domain, timestamp, html from scrape_log where status_code = 200 order by timestamp"
+    if limit:
+        sql += f" limit {limit}"
+    params = dict()
+    rows = db.query(sql, params)
+
+    # Run a count, for the progress bar
+    count = get_count(db, sql, params)
+    rescrape_count = 0
+    with click.progressbar(rows, length=count) as bar:
+        for row in bar:
+            timestamp = dateparser.parse(
+                row["timestamp"],
+                settings={"TIMEZONE": "UTC"},
+            )
+            result = scraper.process_page(
+                db,
+                row["domain"],
+                row["html"],
+                force=True,
+                relative_timestamp=timestamp,
+                verbose=verbose,
+            )
+            rescrape_count += result.posts_added
+
+    # build text indexes upfront when running in a loop, otherwise we'll do it afterwards
+    ensure_fts(db)
+    db["posts"].optimize()
+
+    click.echo(f"{count} pages, {rescrape_count} posts rescraped")
 
 
 @cli.command()
@@ -238,13 +320,7 @@ def sentiment(db_path, table, text_column, output, reset):
 
     rows = db.query(sql, params=dict(params))
 
-    # Run a count, for the progress bar
-    count = next(
-        db.query(
-            "with t as ({}) select count(*) as c from t".format(sql),
-            params=dict(params),
-        )
-    )["c"]
+    count = get_count(db, sql, params)
 
     sentiment_count = 0
     with click.progressbar(rows, length=count) as bar:

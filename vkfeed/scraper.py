@@ -30,36 +30,48 @@ class ProcessResult:
 
 
 def process_page(
-    db: sqlite_utils.Database, domain: str, html: str, force=False
+    db: sqlite_utils.Database,
+    domain: str,
+    html: str,
+    force=False,
+    verbose=True,
+    relative_timestamp=None,
 ) -> ProcessResult:
     soup = BeautifulSoup(html, "html.parser")
     result = ProcessResult()
 
+    # Convert from moscow timezone
+    dateparser_settings = {"TIMEZONE": "Europe/Moscow", "TO_TIMEZONE": "UTC"}
+    if relative_timestamp is not None:
+        dateparser_settings["RELATIVE_BASE"] = relative_timestamp
+
     for post_div in soup.find_all("div", class_="wall_item"):
         post_id = post_div.find("a", class_="post__anchor")["name"].replace("post", "")
         post_date_raw = post_div.find("a", class_="wi_date").text
-        # Convert from moscow timezone
+
         post_date_utc = dateparser.parse(
             post_date_raw,
-            settings={"TIMEZONE": "Europe/Moscow", "TO_TIMEZONE": "UTC"},
+            settings=dateparser_settings,
         ).isoformat()
 
         post_text_div = post_div.find(class_="pi_text")
         # TODO strip See more in post
-        post_text = post_text_div.text if post_text_div else None
+        post_text = (
+            post_text_div.get_text(separator=" ").strip() if post_text_div else None
+        )
 
         post = {
             "id": post_id,
             "domain": domain,
-            # "timestamp": timestamp,
             "date_utc": post_date_utc,
             "text": post_text,
         }
 
         with db.conn:
             try:
-                db["posts"].insert(post, pk="id", replace=force)  # , ignore=True
-                click.echo(f"POST {domain}/{post_id} {post_date_utc} added")
+                db["posts"].insert(post, pk="id", replace=force)
+                if verbose:
+                    click.echo(f"POST {domain}/{post_id} {post_date_utc} added")
                 result.posts_added += 1
                 result.last_post_added = True
                 if (
@@ -85,7 +97,8 @@ def process_page(
                         replace=force,
                     )
             except sqlite3.IntegrityError:
-                click.echo(f"POST {domain}/{post_id} already exists, skipping")
+                if verbose:
+                    click.echo(f"POST {domain}/{post_id} already exists, skipping")
                 result.last_post_added = False
     return result
 
@@ -128,7 +141,6 @@ def fetch_domains(
             ]
             pages_requested += 1
 
-            soup = BeautifulSoup(r.text, "html.parser")
             result = process_page(db, domain, r.text, force)
 
             #  Should we scrape more?
@@ -154,6 +166,7 @@ def fetch_domains(
                 click.echo(f"Until date {until} reached, done with {domain}")
                 break
             if pages_requested < limit:
+                soup = BeautifulSoup(r.text, "html.parser")
                 show_more_div = soup.find("div", class_="show_more_wrap")
                 if show_more_div:
                     show_more_href = show_more_div.a["href"]
