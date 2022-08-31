@@ -233,7 +233,7 @@ def fetch_domains(
             )
 
             # translate
-            if deepl_auth_key is not None:
+            if result.posts_added > 0 and deepl_auth_key is not None:
                 translate(db, deepl_auth_key, limit=result.posts_added)
 
             if scrape_delay:
@@ -261,7 +261,7 @@ def translate(
     # Run a count, for the progress bar
     count = utils.get_count(db, sql, params)
     translation_count = 0
-    click.echo("Translating...")
+    click.echo(f"Translating up to {limit} posts...")
     with click.progressbar(rows, length=count) as bar:
         for chunk in chunks(bar, 50):
             chunk = list(chunk)
