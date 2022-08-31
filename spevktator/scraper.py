@@ -3,13 +3,16 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass
 import dateparser
 import datetime
+import deepl
 import httpx
 import re
 import sqlite_utils
+from sqlite_utils.utils import chunks
 from sqlite_utils.utils import sqlite3
 import time
 
 import spevktator.dostoevsky_sentiment as dostoevsky_sentiment
+import spevktator.utils as utils
 
 
 DEFAULT_HEADERS = {
@@ -184,6 +187,7 @@ def fetch_domains(
     offset: int,
     scrape_delay=False,
     until=None,
+    deepl_auth_key=None,
 ):
     for domain in domains:
         pages_requested = 0
@@ -227,8 +231,59 @@ def fetch_domains(
                 ),
                 fg="green",
             )
+
+            # translate
+            if deepl_auth_key is not None:
+                translate(db, deepl_auth_key, limit=result.posts_added)
+
             if scrape_delay:
                 time.sleep(DEFAULT_DELAY)
             url = next_url(domain, r.text, result, pages_requested, force, limit, until)
             if url is None:
                 break
+
+
+def translate(db, deepl_auth_key, limit, verbose=False):
+    translator = deepl.Translator(deepl_auth_key)
+
+    output_table = "posts_translation"
+    sql = (
+        "select id, text from posts where text != '' and length(text) <= 2500"
+        f" and id not in (select id from {output_table}) order by date_utc desc"
+    )
+    if limit:
+        sql += f" limit {limit}"
+    params = dict()
+    rows = db.query(sql, params)
+
+    # Run a count, for the progress bar
+    count = utils.get_count(db, sql, params)
+    translation_count = 0
+    click.echo("Translating...")
+    with click.progressbar(rows, length=count) as bar:
+        for chunk in chunks(bar, 50):
+            chunk = list(chunk)
+            texts_ru = [row["text"] for row in chunk]
+
+            if verbose:
+                click.echo(texts_ru)
+
+            result = translator.translate_text(
+                texts_ru, source_lang="RU", target_lang="EN-US"
+            )
+            if verbose:
+                click.echo([item.text for item in result])
+
+            to_insert = []
+            for i, translation in enumerate(result):
+                to_insert.append({"id": chunk[i]["id"], "text_en": translation.text})
+                translation_count += 1
+
+            db[output_table].insert_all(
+                to_insert,
+                pk="id",
+                column_order=("id", "text_en"),
+                foreign_keys=[("id", "posts")],
+            )
+
+    click.echo(f"{translation_count} posts translated")

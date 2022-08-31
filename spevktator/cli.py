@@ -6,7 +6,6 @@ import re
 import time
 
 import click
-import deepl
 import dateparser
 import sqlite_utils
 from sqlite_utils.utils import chunks
@@ -14,6 +13,7 @@ from tabulate import tabulate
 
 import spevktator.dostoevsky_sentiment as dostoevsky_sentiment
 import spevktator.scraper as scraper
+import spevktator.utils as utils
 
 
 class VKDomainParamType(click.ParamType):
@@ -165,13 +165,14 @@ def fetch(db_path, domains, force, limit, offset):
     default=scraper.DEFAULT_PAGE_LIMIT,
     help="Number of pages to be requested",
 )
+@click.option("--deepl-auth-key", envvar="DEEPL_AUTH_KEY")
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domains", type=VK_DOMAIN, nargs=-1, required=True)
-def listen(db_path, domains, limit):
+def listen(db_path, domains, limit, deepl_auth_key):
     "Continuously retrieve all wall posts from the VK communities specified by their domains"
 
     db = sqlite_utils.Database(db_path)
@@ -188,21 +189,11 @@ def listen(db_path, domains, limit):
         if "PYTEST_CURRENT_TEST" not in os.environ:
             random.shuffle(domains)
 
-        scraper.fetch_domains(db, domains, False, limit, 0, scrape_delay)
+        scraper.fetch_domains(db, domains, False, limit, 0, scrape_delay, deepl_auth_key=deepl_auth_key)
 
         click.echo(f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s...")
         if scrape_delay:
             time.sleep(scraper.DEFAULT_LOOP_DELAY)
-
-
-def get_count(db, sql, params) -> int:
-    "get count for progress bar"
-    return next(
-        db.query(
-            "with t as ({}) select count(*) as c from t".format(sql),
-            params=dict(params),
-        )
-    )["c"]
 
 
 @cli.command()
@@ -251,7 +242,7 @@ def rescrape(db_path, limit, verbose, reset):
     rows = db.query(sql, params)
 
     # Run a count, for the progress bar
-    count = get_count(db, sql, params)
+    count = utils.get_count(db, sql, params)
     rescrape_count = 0
     with click.progressbar(rows, length=count) as bar:
         for row in bar:
@@ -324,7 +315,7 @@ def sentiment(db_path, table, text_column, output, reset):
         sql += f" and {pk} not in (select id from {output_table})"
 
     rows = db.query(sql, params=dict(params))
-    count = get_count(db, sql, params)
+    count = utils.get_count(db, sql, params)
 
     sentiment_count = 0
     with click.progressbar(rows, length=count) as bar:
@@ -404,51 +395,10 @@ def translate(db_path, limit, verbose, deepl_auth_key):
     if not deepl_auth_key:
         raise click.ClickException("DEEPL_AUTH_KEY not set")
 
-    translator = deepl.Translator(deepl_auth_key)
-
-    output_table = "posts_translation"
-    sql = (
-        "select id, text from posts where text != '' and length(text) <= 2500"
-        f" and id not in (select id from {output_table}) order by date_utc desc"
-    )
-    if limit:
-        sql += f" limit {limit}"
-    params = dict()
-    rows = db.query(sql, params)
-
-    # Run a count, for the progress bar
-    count = get_count(db, sql, params)
-    translation_count = 0
-    with click.progressbar(rows, length=count) as bar:
-        for chunk in chunks(bar, 50):
-            chunk = list(chunk)
-            texts_ru = [row["text"] for row in chunk]
-
-            if verbose:
-                click.echo(texts_ru)
-
-            result = translator.translate_text(
-                texts_ru, source_lang="RU", target_lang="EN-US"
-            )
-            if verbose:
-                click.echo([item.text for item in result])
-
-            to_insert = []
-            for i, translation in enumerate(result):
-                to_insert.append({"id": chunk[i]["id"], "text_en": translation.text})
-                translation_count += 1
-
-            db[output_table].insert_all(
-                to_insert,
-                pk="id",
-                column_order=("id", "text_en"),
-                foreign_keys=[("id", "posts")],
-            )
+    scraper.translate(db, limit, verbose, deepl_auth_key)
 
     ensure_fts(db)
-    db[output_table].optimize()
-
-    click.echo(f"{translation_count} posts translated")
+    db["posts_translate"].optimize()
 
 
 def ensure_tables(db):
