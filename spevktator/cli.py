@@ -189,7 +189,15 @@ def listen(db_path, domains, limit, deepl_auth_key):
         if "PYTEST_CURRENT_TEST" not in os.environ:
             random.shuffle(domains)
 
-        scraper.fetch_domains(db, domains, False, limit, 0, scrape_delay, deepl_auth_key=deepl_auth_key)
+        scraper.fetch_domains(
+            db,
+            domains,
+            force=False,
+            limit=limit,
+            offset=0,
+            scrape_delay=scrape_delay,
+            deepl_auth_key=deepl_auth_key,
+        )
 
         click.echo(f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s...")
         if scrape_delay:
