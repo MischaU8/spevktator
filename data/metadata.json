@@ -7,8 +7,7 @@
                     "sort_desc": "date_utc"
                 },
                 "scrape_log": {
-                    "size": 5,
-                    "sort_desc": "rowid"
+                    "hidden": true
                 }
             }
         }
