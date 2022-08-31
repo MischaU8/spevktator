@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "spevktator"
 version = "0.1.0"
-description = "An open source tool to monitor VK public community walls"
+description = "An open source investigation tool to collect and analyse public VK community wall posts"
 authors = ["Mischa Untaga"]
 license = "Apache License, Version 2.0"
 
