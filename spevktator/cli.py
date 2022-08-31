@@ -408,7 +408,7 @@ def translate(db_path, limit, verbose, deepl_auth_key):
 
     output_table = "posts_translation"
     sql = (
-        "select id, text from posts where text != '' and length(text) <= 5000"
+        "select id, text from posts where text != '' and length(text) <= 2500"
         f" and id not in (select id from {output_table}) order by date_utc desc"
     )
     if limit:
