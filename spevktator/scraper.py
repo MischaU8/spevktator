@@ -243,7 +243,9 @@ def fetch_domains(
                 break
 
 
-def translate(db, deepl_auth_key, limit, verbose=False):
+def translate(
+    db: sqlite_utils.Database, deepl_auth_key: str, limit: int, verbose=False
+):
     translator = deepl.Translator(deepl_auth_key)
 
     output_table = "posts_translation"

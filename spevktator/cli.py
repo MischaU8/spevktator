@@ -388,7 +388,7 @@ def stats(db_path):
     default=False,
     help="Verbose output",
 )
-@click.option("--deepl-auth-key", envvar="DEEPL_AUTH_KEY")
+@click.option("--deepl-auth-key", type=str, default=None, envvar="DEEPL_AUTH_KEY")
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
@@ -403,7 +403,7 @@ def translate(db_path, limit, verbose, deepl_auth_key):
     if not deepl_auth_key:
         raise click.ClickException("DEEPL_AUTH_KEY not set")
 
-    scraper.translate(db, limit, verbose, deepl_auth_key)
+    scraper.translate(db, deepl_auth_key, limit, verbose)
 
     ensure_fts(db)
     db["posts_translate"].optimize()
