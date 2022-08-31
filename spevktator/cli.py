@@ -6,6 +6,7 @@ import re
 import time
 
 import click
+import deepl
 import dateparser
 import sqlite_utils
 from sqlite_utils.utils import chunks
@@ -371,6 +372,85 @@ def stats(db_path):
     click.echo(tabulate(list(rows), headers="keys"))
 
 
+@cli.command()
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    show_default=True,
+    default=1,
+    help="Number of posts to be translated",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Verbose output",
+)
+@click.option("--deepl-auth-key", envvar="DEEPL_AUTH_KEY")
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def translate(db_path, limit, verbose, deepl_auth_key):
+    "Translate posts from RU to EN-US"
+
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+
+    if not deepl_auth_key:
+        raise click.ClickException("DEEPL_AUTH_KEY not set")
+
+    translator = deepl.Translator(deepl_auth_key)
+
+    output_table = "posts_translation"
+    sql = (
+        "select id, text from posts where text != '' and length(text) <= 5000"
+        f" and id not in (select id from {output_table}) order by date_utc desc"
+    )
+    if limit:
+        sql += f" limit {limit}"
+    params = dict()
+    rows = db.query(sql, params)
+
+    # Run a count, for the progress bar
+    count = get_count(db, sql, params)
+    translation_count = 0
+    with click.progressbar(rows, length=count) as bar:
+        for chunk in chunks(bar, 50):
+            chunk = list(chunk)
+            texts_ru = [row["text"] for row in chunk]
+
+            if verbose:
+                click.echo(texts_ru)
+
+            result = translator.translate_text(
+                texts_ru, source_lang="RU", target_lang="EN-US"
+            )
+            if verbose:
+                click.echo([item.text for item in result])
+
+            to_insert = []
+            for i, translation in enumerate(result):
+                to_insert.append({"id": chunk[i]["id"], "text_en": translation.text})
+                translation_count += 1
+
+            db[output_table].insert_all(
+                to_insert,
+                pk="id",
+                column_order=("id", "text_en"),
+                foreign_keys=[("id", "posts")],
+            )
+
+    ensure_fts(db)
+    db[output_table].optimize()
+
+    click.echo(f"{translation_count} posts translated")
+
+
 def ensure_tables(db):
     # Create tables manually, because if we create them automatically
     # we may create items without 'title' first, which breaks
@@ -420,6 +500,16 @@ def ensure_tables(db):
             ),
             foreign_keys=[("id", "posts")],
         )
+    if "posts_translation" not in db.table_names():
+        db["posts_translation"].create(
+            {
+                "id": str,
+                "text_en": str,
+            },
+            pk="id",
+            column_order=("id", "text_en"),
+            foreign_keys=[("id", "posts")],
+        )
     if "scrape_log" not in db.table_names():
         db["scrape_log"].create(
             {
@@ -464,3 +554,11 @@ def ensure_fts(db):
     table_names = set(db.table_names())
     if "posts" in table_names and "posts_fts" not in table_names:
         db["posts"].enable_fts(["text"], create_triggers=True)
+
+    if (
+        "posts_translation" in table_names
+        and "posts_translation_fts" not in table_names
+    ):
+        db["posts_translation"].enable_fts(
+            ["text_en"], tokenize="porter", create_triggers=True
+        )
