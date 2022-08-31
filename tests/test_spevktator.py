@@ -3,7 +3,7 @@ import pathlib
 import pytest
 from pytest_httpx import HTTPXMock
 from click.testing import CliRunner
-from vkfeed import cli
+from spevktator import cli
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def test_url(httpx_mock: HTTPXMock):
         print(response2.status_code)
 
 
-def test_vkfeed_test(httpx_mock: HTTPXMock):
+def test_spevktator_test(httpx_mock: HTTPXMock):
     httpx_mock.add_response(url="https://httpbin.org/get")
     # httpx_mock.add_exception(httpx.TimeoutException("No httpx_mock match found"))
 
@@ -31,7 +31,7 @@ def test_vkfeed_test(httpx_mock: HTTPXMock):
     assert not result.exception, result.exception
 
 
-def test_vkfeed_listen(tmpdir, vk_life_html, httpx_mock: HTTPXMock):
+def test_spevktator_listen(tmpdir, vk_life_html, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url="https://m.vk.com/life", html=vk_life_html)
     # httpx_mock.add_exception(httpx.TimeoutException("No httpx_mock match found"))
 

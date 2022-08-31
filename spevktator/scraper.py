@@ -9,7 +9,7 @@ import sqlite_utils
 from sqlite_utils.utils import sqlite3
 import time
 
-import vkfeed.dostoevsky_sentiment as dostoevsky_sentiment
+import spevktator.dostoevsky_sentiment as dostoevsky_sentiment
 
 
 DEFAULT_HEADERS = {

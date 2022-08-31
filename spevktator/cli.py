@@ -11,8 +11,8 @@ import sqlite_utils
 from sqlite_utils.utils import chunks
 from tabulate import tabulate
 
-import vkfeed.dostoevsky_sentiment as dostoevsky_sentiment
-import vkfeed.scraper as scraper
+import spevktator.dostoevsky_sentiment as dostoevsky_sentiment
+import spevktator.scraper as scraper
 
 
 class VKDomainParamType(click.ParamType):
