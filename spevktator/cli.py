@@ -39,11 +39,22 @@ def cli():
 
 
 @cli.command()
-def install():
-    "Download and install models"
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def install(db_path):
+    "Download and install models, create database"
 
     click.echo("Downloading Dostoevsky sentiment model... ", nl=False)
     dostoevsky_sentiment.download()
+    click.echo("DONE")
+
+    click.echo("Creating database...", nl=False)
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+    ensure_views(db)
     click.echo("DONE")
 
 
@@ -497,6 +508,31 @@ def ensure_views(db):
         select posts.id, domain, date_utc, text, (positive - negative) as sentiment
         from posts join posts_sentiment on posts.id = posts_sentiment.id
         order by sentiment
+        """,
+        )
+    if "posts_translation_view" not in db.view_names():
+        db.create_view(
+            "posts_translation_view",
+            """
+        select posts.id, domain, date_utc, text, text_en
+        from posts left join posts_translation on posts.id = posts_translation.id
+        order by date_utc desc
+        """,
+        )
+    if "posts_mega_view" not in db.view_names():
+        db.create_view(
+            "posts_mega_view",
+            """
+        select
+            p.id, domain, date_utc, text, text_en, likes, shares, views,
+            (ps.positive - ps.negative) as sentiment
+        from
+            posts p
+            left join posts_metrics pm on p.id = pm.id
+            left join posts_sentiment ps on p.id = ps.id
+            left join posts_translation pt on p.id = pt.id
+        where text != ''
+        order by date_utc desc
         """,
         )
     if "scrape_errors" not in db.view_names():
