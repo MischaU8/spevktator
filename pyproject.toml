@@ -2,18 +2,18 @@
 name = "spevktator"
 version = "0.1.0"
 description = "An open source investigation tool to collect and analyse public VK community wall posts"
-authors = ["Mischa Untaga"]
+authors = ["Mischa Untaga", "Morsaki"]
+readme = "README.md"
 license = "Apache License, Version 2.0"
+homepage = "https://spevktator.io/"
+repository = "https://github.com/MischaU8/spevktator"
+keywords = ["osint", "vk", "sqlite", "datasette"]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 click = "^8.1.3"
-parsel = "^1.6.0"
-spacy = "^3.4.1"
 sqlite-utils = "^3.28"
 datasette = "^0.62"
-scipy = "^1.9.0"
-concise-concepts = "^0.5.4"
 beautifulsoup4 = "^4.11.1"
 dateparser = "^1.1.1"
 dostoevsky = "^0.6.0"
