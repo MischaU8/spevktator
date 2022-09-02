@@ -13,11 +13,9 @@ Spevktator provides a combined live feed of 5 popular Russian news channels on V
 Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content, allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold. 
 
 ## Online Demo
-
-https://spevktator.io/
+https://spevktator.io/vk/posts_mega_view
 
 ## Installation
-
 To install and run spevktator, you need at least Python 3.9 and a couple Python libraries which you can install with `pip`.
 
 ### Development build (cloning git master branch):
