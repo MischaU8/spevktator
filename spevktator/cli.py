@@ -429,7 +429,7 @@ def stats(db_path):
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
-def translate(db_path, limit, verbose, deepl_auth_key):
+def translate_posts(db_path, limit, verbose, deepl_auth_key):
     "Translate posts from RU to EN-US"
 
     db = sqlite_utils.Database(db_path)
@@ -438,10 +438,45 @@ def translate(db_path, limit, verbose, deepl_auth_key):
     if not deepl_auth_key:
         raise click.ClickException("DEEPL_AUTH_KEY not set")
 
-    scraper.translate(db, deepl_auth_key, limit, verbose)
+    scraper.translate_posts(db, deepl_auth_key, limit, verbose)
 
     ensure_fts(db)
-    db["posts_translate"].optimize()
+    db["posts_translation"].optimize()
+
+
+@cli.command()
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    show_default=True,
+    default=1,
+    help="Number of entities to be translated",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Verbose output",
+)
+@click.option("--deepl-auth-key", type=str, default=None, envvar="DEEPL_AUTH_KEY")
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def translate_entities(db_path, limit, verbose, deepl_auth_key):
+    "Translate entities from RU to EN-US"
+
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+
+    if not deepl_auth_key:
+        raise click.ClickException("DEEPL_AUTH_KEY not set")
+
+    scraper.translate_entities(db, deepl_auth_key, limit, verbose)
 
 
 @cli.command()
@@ -473,8 +508,6 @@ def extract_named_entities(db_path, limit, verbose):
     ensure_tables(db)
 
     scraper.extract_named_entities(db, limit, verbose)
-
-    # ensure_fts(db)
 
 
 def ensure_tables(db):

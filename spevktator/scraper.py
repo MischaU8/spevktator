@@ -242,11 +242,13 @@ def fetch_domains(
 
             # translate
             if result.posts_added > 0 and deepl_auth_key is not None:
-                translate(db, deepl_auth_key, limit=result.posts_added)
+                translate_posts(db, deepl_auth_key, limit=result.posts_added)
 
             # named entities recognition
             if result.posts_added > 0:
-                extract_named_entities(db, limit=result.posts_added)
+                ner_count = extract_named_entities(db, limit=result.posts_added)
+                if ner_count > 0 and deepl_auth_key is not None:
+                    translate_entities(db, deepl_auth_key, limit=ner_count)
 
             if scrape_delay:
                 time.sleep(DEFAULT_DELAY)
@@ -255,7 +257,7 @@ def fetch_domains(
                 break
 
 
-def translate(
+def translate_posts(
     db: sqlite_utils.Database, deepl_auth_key: str, limit: int, verbose=False
 ):
     translator = deepl.Translator(deepl_auth_key)
@@ -301,6 +303,46 @@ def translate(
             )
 
     click.echo(f"{translation_count} posts translated")
+
+
+def translate_entities(
+    db: sqlite_utils.Database, deepl_auth_key: str, limit: int, verbose=False
+):
+    translator = deepl.Translator(deepl_auth_key)
+
+    sql = (
+        "select id, name from entities where name != '' and (name_en = '' or name_en is null)"
+        " order by rowid desc"
+    )
+    if limit:
+        sql += f" limit {limit}"
+    click.echo(sql)
+    params = dict()
+    rows = db.query(sql, params)
+
+    # Run a count, for the progress bar
+    count = utils.get_count(db, sql, params)
+    translation_count = 0
+    click.echo(f"Translating up to {limit} entities...")
+    with click.progressbar(rows, length=count) as bar:
+        for chunk in chunks(bar, 10):
+            chunk = list(chunk)
+            texts_ru = [row["name"] for row in chunk]
+
+            if verbose:
+                click.echo(texts_ru)
+
+            result = translator.translate_text(
+                texts_ru, source_lang="RU", target_lang="EN-US"
+            )
+            if verbose:
+                click.echo([item.text for item in result])
+
+            for i, translation in enumerate(result):
+                db["entities"].update(chunk[i]["id"], {"name_en": translation.text})
+                translation_count += 1
+
+    click.echo(f"{translation_count} entities translated")
 
 
 def extract_named_entities(db: sqlite_utils.Database, limit: int, verbose=False):
@@ -358,3 +400,4 @@ def extract_named_entities(db: sqlite_utils.Database, limit: int, verbose=False)
             post_count += 1
 
     click.echo(f"{ner_count} extracted out of {post_count} posts")
+    return ner_count
