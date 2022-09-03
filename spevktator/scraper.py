@@ -271,7 +271,7 @@ def translate(
     translation_count = 0
     click.echo(f"Translating up to {limit} posts...")
     with click.progressbar(rows, length=count) as bar:
-        for chunk in chunks(bar, 50):
+        for chunk in chunks(bar, 10):
             chunk = list(chunk)
             texts_ru = [row["text"] for row in chunk]
 

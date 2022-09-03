@@ -77,11 +77,12 @@ This section includes any additional information that you want to mention about 
 
 ### Current limitations
 
-Only passive monitoring is performed, no VK account is needed, so private groups won’t be scraped.
-Comments and other personal information isn’t collected due to GDPR reasons.
-Sentiment prediction is based on RuSentiment and has moderate quality
-Post metrics (shares, likes, views) are only tracked for a limited duration (last 5 posts)
-Limited error handling and data loss recovery
+- Only passive monitoring is performed, no VK account is needed, so private groups won’t be scraped.
+- Comments and other personal information isn’t collected due to GDPR reasons.
+- Sentiment prediction is based on RuSentiment and has moderate quality.
+- Post metrics (shares, likes, views) are only tracked for a limited duration (last 5 posts).
+- Post text longer than 2500 characters are not translated.
+- Limited error handling and data loss recovery.
 
 ### Motivation for design / architecture decisions
 The ability to conduct keyword searches with local data is much superior to any online search. I no longer need to worry about revealing details of my investigation to any third party. The online web interface is provided for demo purposes, but not required.
