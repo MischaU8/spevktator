@@ -516,8 +516,9 @@ def ensure_tables(db):
         )
     if "entities" not in db.table_names():
         db["entities"].create(
-            {"id": int, "name": str, "type": int},
+            {"id": int, "name": str, "name_en": str, "type": int},
             pk="id",
+            column_order=("id", "name", "name_en", "type"),
             foreign_keys=[("type", "entity_types", "id")],
         )
 
