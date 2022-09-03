@@ -11,7 +11,7 @@ Morsaki - [Medium blog](https://medium.com/@rosa.noctis532)
 ## Tool Description
 Spevktator provides a combined live feed of 5 popular Russian news channels on VK, along with translations, sentiment analysis and visualisation tools, all of which is accessible online, from anywhere (or offline if you prefer so). We currently have an archive of over 67,000 posts, dating back to the beginning of February 2022.
 
-Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content, allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold. For example "[Documenting Russian Coverage of the ZNPP](research/Russian%20Coverage%20of%20the%20ZNPP.md)" by Morsaki.
+Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content, allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold. For example *[Documenting Russian Coverage of the ZNPP](research/Russian%20Coverage%20of%20the%20ZNPP.md)* by Morsaki.
 
 Sophisticated researchers can run this tool locally, against their own targets of research and even perform their detailed analysis offline through an SQL interface.
 
