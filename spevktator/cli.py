@@ -82,14 +82,18 @@ def install(db_path):
     show_default=True,
     help="Date to go back to",
 )
+@click.option("--spevktator-proxy", envvar="SPEVKTATOR_PROXY")
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domain", type=VK_DOMAIN, required=True)
-def backfill(db_path, domain, force, limit, until):
+def backfill(db_path, domain, force, limit, until, spevktator_proxy):
     "Retrieve the backlog of wall posts from the VK communities specified by their domain"
+
+    if spevktator_proxy is not None:
+        click.echo(f"Using proxy {spevktator_proxy}")
 
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
@@ -117,7 +121,16 @@ def backfill(db_path, domain, force, limit, until):
     )
 
     scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
-    scraper.fetch_domains(db, [domain], force, limit, offset, scrape_delay, until)
+    scraper.fetch_domains(
+        db,
+        [domain],
+        force,
+        limit,
+        offset,
+        scrape_delay,
+        until,
+        proxies=spevktator_proxy,
+    )
     ensure_fts(db)
     db["posts"].optimize()
 
@@ -147,21 +160,27 @@ def backfill(db_path, domain, force, limit, until):
     default=0,
     help="Number of posts to skip",
 )
+@click.option("--spevktator-proxy", envvar="SPEVKTATOR_PROXY")
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domains", type=VK_DOMAIN, nargs=-1, required=True)
-def fetch(db_path, domains, force, limit, offset):
+def fetch(db_path, domains, force, limit, offset, spevktator_proxy):
     "Retrieve all wall posts from the VK communities specified by their domains"
+
+    if spevktator_proxy is not None:
+        click.echo(f"Using proxy {spevktator_proxy}")
 
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
     ensure_views(db)
 
     scrape_delay = "PYTEST_CURRENT_TEST" not in os.environ
-    scraper.fetch_domains(db, domains, force, limit, offset, scrape_delay)
+    scraper.fetch_domains(
+        db, domains, force, limit, offset, scrape_delay, proxies=spevktator_proxy
+    )
 
     ensure_fts(db)
     db["posts"].optimize()
@@ -177,14 +196,18 @@ def fetch(db_path, domains, force, limit, offset):
     help="Number of pages to be requested",
 )
 @click.option("--deepl-auth-key", envvar="DEEPL_AUTH_KEY")
+@click.option("--spevktator-proxy", envvar="SPEVKTATOR_PROXY")
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
     required=True,
 )
 @click.argument("domains", type=VK_DOMAIN, nargs=-1, required=True)
-def listen(db_path, domains, limit, deepl_auth_key):
+def listen(db_path, domains, limit, deepl_auth_key, spevktator_proxy):
     "Continuously retrieve all wall posts from the VK communities specified by their domains"
+
+    if spevktator_proxy is not None:
+        click.echo(f"Using proxy {spevktator_proxy}")
 
     db = sqlite_utils.Database(db_path)
     ensure_tables(db)
@@ -208,6 +231,7 @@ def listen(db_path, domains, limit, deepl_auth_key):
             offset=0,
             scrape_delay=scrape_delay,
             deepl_auth_key=deepl_auth_key,
+            proxies=spevktator_proxy,
         )
 
         click.echo(f"Done with all domains, sleeping {scraper.DEFAULT_LOOP_DELAY}s...")

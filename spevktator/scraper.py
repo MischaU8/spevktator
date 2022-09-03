@@ -195,6 +195,7 @@ def fetch_domains(
     scrape_delay=False,
     until=None,
     deepl_auth_key=None,
+    proxies=None,
 ):
     for domain in domains:
         pages_requested = 0
@@ -207,7 +208,7 @@ def fetch_domains(
         while True:
             timestamp = datetime.datetime.utcnow()
             click.echo(f"Scraping VK domain '{domain}'... {url}")
-            r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=PROXIES)
+            r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=proxies)
             with db.conn:
                 db["scrape_log"].insert(
                     {
