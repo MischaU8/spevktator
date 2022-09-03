@@ -34,7 +34,8 @@ https://spevktator.io/vk?sql=with+himars+as+%28%0D%0A++++select+date%28date_utc%
 - [When is the Moskva cruiser in the news](
 https://spevktator.io/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative
 )
-- [Related entities to ЗАЭС (ZZNP)](https://spevktator.io/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1)
+- [Related entities to ЗАЭС (ZNPP)](https://spevktator.io/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1)
+- [Related entities to ZNPP (ЗАЭС)](https://spevktator.io/vk/related_entities_en?entity_name=ZNPP&_hide_sql=1)
 
 
 ## Installation

@@ -28,10 +28,10 @@ description_html: |-
   <a href="/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative">When is the Moskva cruiser in the news</a>
   </li>
   <li>
-  <a href="/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1">Related entities to ЗАЭС (ZZNP)</a>
+  <a href="/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1">Related entities to ЗАЭС (ZNPP)</a>
   </li>
   <li>
-  <a href="/vk/related_entities_en?entity_name=ZZNP&_hide_sql=1">Related entities to ZZNP (ЗАЭС)</a>
+  <a href="/vk/related_entities_en?entity_name=ZNPP&_hide_sql=1">Related entities to ZNPP (ЗАЭС)</a>
   </li>
   </ul>
 
