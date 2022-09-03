@@ -12,6 +12,7 @@ from sqlite_utils.utils import sqlite3
 import time
 
 import spevktator.dostoevsky_sentiment as dostoevsky_sentiment
+import spevktator.natasha_entities as natasha_entities
 import spevktator.utils as utils
 
 
@@ -69,9 +70,7 @@ def process_page(
                 # strip "See more" in post
                 pi_text_more.decompose()
 
-        post_text = (
-            post_text_div.get_text(separator=" ") if post_text_div else ""
-        )
+        post_text = post_text_div.get_text(separator=" ") if post_text_div else ""
 
         _RE_COMBINE_WHITESPACE = re.compile(r"\s+")
         post_text = _RE_COMBINE_WHITESPACE.sub(" ", post_text).strip()
@@ -244,6 +243,10 @@ def fetch_domains(
             if result.posts_added > 0 and deepl_auth_key is not None:
                 translate(db, deepl_auth_key, limit=result.posts_added)
 
+            # named entities recognition
+            if result.posts_added > 0:
+                extract_named_entities(db, limit=result.posts_added)
+
             if scrape_delay:
                 time.sleep(DEFAULT_DELAY)
             url = next_url(domain, r.text, result, pages_requested, force, limit, until)
@@ -297,3 +300,60 @@ def translate(
             )
 
     click.echo(f"{translation_count} posts translated")
+
+
+def extract_named_entities(db: sqlite_utils.Database, limit: int, verbose=False):
+
+    output_table = "posts_entities"
+    done_table = f"{output_table}_done"
+    sql = (
+        "select id, text from posts where text != ''"
+        f" and id not in (select id from {done_table})"
+        " order by date_utc desc"
+    )
+    if limit:
+        sql += f" limit {limit}"
+    params = dict()
+    rows = db.query(sql, params)
+
+    # Run a count, for the progress bar
+    count = utils.get_count(db, sql, params)
+    post_count = 0
+    ner_count = 0
+    click.echo(f"Extracting named-entities up to {limit} posts...")
+    with click.progressbar(rows, length=count) as bar:
+        for row in bar:
+            if verbose:
+                click.echo(row)
+            entities = natasha_entities.named_entity_normalization(row["text"])
+
+            to_insert = []
+            for entity in entities:
+                if verbose:
+                    click.echo(f"-> {entity}")
+                to_insert.append(
+                    {
+                        "id": row["id"],
+                        "entity": db["entities"].lookup(
+                            {
+                                "type": db["entity_types"].lookup(
+                                    {"value": entity["type"]}
+                                ),
+                                "name": entity["normal"],
+                            }
+                        ),
+                        "begin_offset": entity["start"],
+                        "end_offset": entity["stop"],
+                    }
+                )
+                ner_count += 1
+
+            db[output_table].insert_all(to_insert)
+
+            db[done_table].insert_all(
+                [{"id": row["id"]}], pk="id", foreign_keys=[("id", "posts", "id")]
+            )
+
+            post_count += 1
+
+    click.echo(f"{ner_count} extracted out of {post_count} posts")

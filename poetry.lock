@@ -261,6 +261,14 @@ fasttext = ["fasttext"]
 calendars = ["convertdate", "hijri-converter", "convertdate"]
 
 [[package]]
+name = "dawg-python"
+version = "0.7.2"
+description = "Pure-python reader for DAWGs (DAFSAs) created by dawgdic C++ library or DAWG Python extension."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "deepl"
 version = "1.9.0"
 description = "Python library for the DeepL API."
@@ -270,6 +278,14 @@ python-versions = ">=3.6.2,<4"
 
 [package.dependencies]
 requests = ">=2,<3"
+
+[[package]]
+name = "docopt"
+version = "0.6.2"
+description = "Pythonic argument parser, that will make you smile"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "dostoevsky"
@@ -396,6 +412,28 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "intervaltree"
+version = "3.1.0"
+description = "Editable interval tree data structure for Python 2 and 3"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+sortedcontainers = ">=2.0,<3.0"
+
+[[package]]
+name = "ipymarkup"
+version = "0.9.0"
+description = "NER, syntax tree markup visualisations for Jupyter Notebook"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+intervaltree = ">=3"
+
+[[package]]
 name = "itsdangerous"
 version = "2.1.2"
 description = "Safely pass data to untrusted environments and back."
@@ -459,6 +497,33 @@ description = "Experimental type system extensions for programs checked with the
 category = "dev"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "natasha"
+version = "1.4.0"
+description = "Named-entity recognition for russian language"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+ipymarkup = ">=0.8.0"
+navec = ">=0.9.0"
+pymorphy2 = "*"
+razdel = ">=0.5.0"
+slovnet = ">=0.3.0"
+yargy = ">=0.14.0"
+
+[[package]]
+name = "navec"
+version = "0.10.0"
+description = "Compact high quality word embeddings for russian language"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+numpy = "*"
 
 [[package]]
 name = "numpy"
@@ -558,6 +623,30 @@ description = "passive checker of Python programs"
 category = "dev"
 optional = false
 python-versions = ">=3.6"
+
+[[package]]
+name = "pymorphy2"
+version = "0.9.1"
+description = "Morphological analyzer (POS tagger + inflection engine) for Russian language."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+dawg-python = ">=0.7.1"
+docopt = ">=0.6"
+pymorphy2-dicts-ru = ">=2.4,<3.0"
+
+[package.extras]
+fast = ["DAWG (>=0.8)"]
+
+[[package]]
+name = "pymorphy2-dicts-ru"
+version = "2.4.417127.4579844"
+description = "Russian dictionaries for pymorphy2"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "pyparsing"
@@ -712,12 +801,33 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
+name = "slovnet"
+version = "0.5.0"
+description = "Deep-learning based NLP modeling for Russian language"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+navec = "*"
+numpy = "*"
+razdel = "*"
+
+[[package]]
 name = "sniffio"
 version = "1.3.0"
 description = "Sniff out which async library your code is running under"
 category = "main"
 optional = false
 python-versions = ">=3.7"
+
+[[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "soupsieve"
@@ -839,10 +949,21 @@ h11 = ">=0.8"
 [package.extras]
 standard = ["colorama (>=0.4)", "httptools (>=0.4.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.0)"]
 
+[[package]]
+name = "yargy"
+version = "0.15.0"
+description = "Rule-based facts extraction for Russian language"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pymorphy2 = "*"
+
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "3a7e132c8a77d797cde481729ba01ebe51a3deaacf957b610b41aa078d32ace1"
+content-hash = "98c7c290385dabe761fca48a2855af84cce4a19605d5736a2f4465370f527bdf"
 
 [metadata.files]
 aiofiles = [
@@ -955,9 +1076,16 @@ dateparser = [
     {file = "dateparser-1.1.1-py2.py3-none-any.whl", hash = "sha256:9600874312ff28a41f96ec7ccdc73be1d1c44435719da47fea3339d55ff5a628"},
     {file = "dateparser-1.1.1.tar.gz", hash = "sha256:038196b1f12c7397e38aad3d61588833257f6f552baa63a1499e6987fa8d42d9"},
 ]
+dawg-python = [
+    {file = "DAWG-Python-0.7.2.tar.gz", hash = "sha256:4a5e3286e6261cca02f205cfd5516a7ab10190fa30c51c28d345808f595e3421"},
+    {file = "DAWG_Python-0.7.2-py2.py3-none-any.whl", hash = "sha256:4941d5df081b8d6fcb4597e073a9f60d5c1ccc9d17cd733e8744d7ecfec94ef3"},
+]
 deepl = [
     {file = "deepl-1.9.0-py3-none-any.whl", hash = "sha256:3e1eeb47e7b5455bf7b0553eede7824113ccab4ceb7412a9cd50d829386fedb8"},
     {file = "deepl-1.9.0.tar.gz", hash = "sha256:db03e456263adcb9307d320fccd7e2b96628d9653dd8e09b74b6d0aecbe0f562"},
+]
+docopt = [
+    {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
 ]
 dostoevsky = [
     {file = "dostoevsky-0.6.0-py2.py3-none-any.whl", hash = "sha256:172e46f2d482466dbd4d7ed42bb07a899293948998632adc5d03d5625f3ec4e8"},
@@ -997,6 +1125,13 @@ idna = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+intervaltree = [
+    {file = "intervaltree-3.1.0.tar.gz", hash = "sha256:902b1b88936918f9b2a19e0e5eb7ccb430ae45cde4f39ea4b36932920d33952d"},
+]
+ipymarkup = [
+    {file = "ipymarkup-0.9.0-py3-none-any.whl", hash = "sha256:6ef17080e7b2dd339634337e676c0a257c8ff6c8cb54884cff91011e5a15d3f6"},
+    {file = "ipymarkup-0.9.0.tar.gz", hash = "sha256:3f4bfa10fd66293201af8484a7e6bcb723bf2e33d9a6aa00882671af9ca26911"},
 ]
 itsdangerous = [
     {file = "itsdangerous-2.1.2-py3-none-any.whl", hash = "sha256:2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44"},
@@ -1064,6 +1199,14 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
+natasha = [
+    {file = "natasha-1.4.0-py3-none-any.whl", hash = "sha256:e9969865ab1869b44a65e2654ed36b49407d5b7285a937227b05cdace1d13f7c"},
+    {file = "natasha-1.4.0.tar.gz", hash = "sha256:1dddbe98aad7941ff91f10ac3c1bce8d420c423dd2452b9a4d5249d035353c63"},
+]
+navec = [
+    {file = "navec-0.10.0-py3-none-any.whl", hash = "sha256:c4e24519ed5af3f6984f763c61c3a281b2923b59c72b88ea8c1c11aa81265e18"},
+    {file = "navec-0.10.0.tar.gz", hash = "sha256:4f23474b1c279af6c605f84e7873e87c47ca58b0c538a3f9d30d90c609c9fd21"},
+]
 numpy = [
     {file = "numpy-1.23.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e603ca1fb47b913942f3e660a15e55a9ebca906857edfea476ae5f0fe9b457d5"},
     {file = "numpy-1.23.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:633679a472934b1c20a12ed0c9a6c9eb167fbb4cb89031939bfd03dd9dbc62b8"},
@@ -1128,6 +1271,14 @@ pycodestyle = [
 pyflakes = [
     {file = "pyflakes-2.5.0-py2.py3-none-any.whl", hash = "sha256:4579f67d887f804e67edb544428f264b7b24f435b263c4614f384135cea553d2"},
     {file = "pyflakes-2.5.0.tar.gz", hash = "sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3"},
+]
+pymorphy2 = [
+    {file = "pymorphy2-0.9.1-py3-none-any.whl", hash = "sha256:a5224ec153cd6920a33961ae636793ad5185143bc8045b3f9a9f8bd62ecacf68"},
+    {file = "pymorphy2-0.9.1.tar.gz", hash = "sha256:86c447157dee2eb2341efbe4538e1281a754756ba1aa32da77a89614c58b560c"},
+]
+pymorphy2-dicts-ru = [
+    {file = "pymorphy2-dicts-ru-2.4.417127.4579844.tar.gz", hash = "sha256:78cad03adca605021abd387a3b2eb515c851b86e94682a1ef2354a2c74fcc196"},
+    {file = "pymorphy2_dicts_ru-2.4.417127.4579844-py2.py3-none-any.whl", hash = "sha256:9a322a6ee78fd4a5dceead0545c24b9a91687ad5df95cbac1b36f6c36cbb498a"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
@@ -1283,9 +1434,17 @@ six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+slovnet = [
+    {file = "slovnet-0.5.0-py3-none-any.whl", hash = "sha256:031908382d8e9644c524a840ef95f2b0ee289eb63f23d7bfe64deb36c58a8fb3"},
+    {file = "slovnet-0.5.0.tar.gz", hash = "sha256:73eeb89f2bfecbbb483c7e27f89b91635b183965c67e1ebaa095551c8ed3eb66"},
+]
 sniffio = [
     {file = "sniffio-1.3.0-py3-none-any.whl", hash = "sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384"},
     {file = "sniffio-1.3.0.tar.gz", hash = "sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101"},
+]
+sortedcontainers = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
 ]
 soupsieve = [
     {file = "soupsieve-2.3.2.post1-py3-none-any.whl", hash = "sha256:3b2503d3c7084a42b1ebd08116e5f81aadfaea95863628c80a3b774a11b7c759"},
@@ -1327,4 +1486,8 @@ urllib3 = [
 uvicorn = [
     {file = "uvicorn-0.18.3-py3-none-any.whl", hash = "sha256:0abd429ebb41e604ed8d2be6c60530de3408f250e8d2d84967d85ba9e86fe3af"},
     {file = "uvicorn-0.18.3.tar.gz", hash = "sha256:9a66e7c42a2a95222f76ec24a4b754c158261c4696e683b9dadc72b590e0311b"},
+]
+yargy = [
+    {file = "yargy-0.15.0-py3-none-any.whl", hash = "sha256:3b0ff3413841485c6f5117c21303d5155222b7ab0035d918d26b0a96edab0a7a"},
+    {file = "yargy-0.15.0.tar.gz", hash = "sha256:7b874d88a0add51caf34a0153740101ec49d2f36f16ada1521b8036e67b5a1a5"},
 ]

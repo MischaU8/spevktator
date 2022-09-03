@@ -420,6 +420,39 @@ def translate(db_path, limit, verbose, deepl_auth_key):
     db["posts_translate"].optimize()
 
 
+@cli.command()
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    show_default=True,
+    default=1,
+    help="Number of posts to be translated",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Verbose output",
+)
+@click.argument(
+    "db_path",
+    type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),
+    required=True,
+)
+def extract_named_entities(db_path, limit, verbose):
+    "Extract named-entities from text"
+
+    db = sqlite_utils.Database(db_path)
+    ensure_tables(db)
+
+    scraper.extract_named_entities(db, limit, verbose)
+
+    # ensure_fts(db)
+
+
 def ensure_tables(db):
     # Create tables manually, because if we create them automatically
     # we may create items without 'title' first, which breaks
@@ -447,6 +480,31 @@ def ensure_tables(db):
             pk="id",
             column_order=("id", "likes", "shares", "views", "timestamp"),
             foreign_keys=[("id", "posts")],
+        )
+
+    if "entity_types" not in db.table_names():
+        db["entity_types"].create(
+            {
+                "id": int,
+                "value": str,
+            },
+            pk="id",
+        )
+    if "entities" not in db.table_names():
+        db["entities"].create(
+            {"id": int, "name": str, "type": int},
+            pk="id",
+            foreign_keys=[("type", "entity_types", "id")],
+        )
+
+    if "posts_entities" not in db.table_names():
+        db["posts_entities"].create(
+            {"id": str, "entity": int, "begin_offset": int, "end_offset": int},
+            column_order=("id", "entity", "begin_offset", "end_offset"),
+            foreign_keys=[
+                ("entity", "entities", "id"),
+                ("id", "posts", "id"),
+            ],
         )
     if "posts_sentiment" not in db.table_names():
         db["posts_sentiment"].create(

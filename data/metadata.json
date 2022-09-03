@@ -6,6 +6,9 @@
                     "size": 50,
                     "sort_desc": "date_utc"
                 },
+                "posts_entities_done": {
+                    "hidden": true
+                },
                 "scrape_log": {
                     "hidden": true
                 }

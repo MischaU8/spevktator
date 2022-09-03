@@ -1,4 +1,3 @@
-import httpx
 import pathlib
 import pytest
 from click.testing import CliRunner
@@ -61,5 +60,6 @@ def test_spevktator_fetch(tmpdir, vk_life_html, httpx_mock: HTTPXMock):
             "domain": "life",
             "date_utc": "2022-09-03T12:11:00",
             "text": "Одна из известнейших россиянок уехала из России: https://life.ru/p/1518869",
-        }]
+        },
+    ]
     # print(posts)
