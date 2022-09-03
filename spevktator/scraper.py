@@ -63,10 +63,11 @@ def process_page(
         )
 
         post_text_div = post_div.find(class_="pi_text")
-        pi_text_more = post_text_div.find(class_="pi_text_more")
-        if pi_text_more:
-            # strip "See more" in post
-            pi_text_more.decompose()
+        if post_text_div:
+            pi_text_more = post_text_div.find(class_="pi_text_more")
+            if pi_text_more:
+                # strip "See more" in post
+                pi_text_more.decompose()
 
         post_text = (
             post_text_div.get_text(separator=" ") if post_text_div else ""
