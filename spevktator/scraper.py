@@ -20,7 +20,7 @@ DEFAULT_HEADERS = {
     "accept-language": "en-US,en;q=0.5",
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0",
 }
-PROXIES = "http://localhost:8888"
+
 VK_BASE_URL = "https://m.vk.com"
 DEFAULT_PAGE_LIMIT = 5
 DEFAULT_DELAY = 5
