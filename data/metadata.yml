@@ -1,0 +1,43 @@
+title: Spevktator - OSINT analysis tool for VK
+description_html: |-
+  <p>Spevktator provides a combined live feed of <a href="/vk?sql=select+domain%2C+count%28*%29+as+post_nr+from+posts+group+by+domain+order+by+post_nr+desc">5 popular Russian news channels on VK</a>, along with translations,
+  sentiment analysis and visualisation tools, all of which is accessible online, from anywhere.
+  We currently have an archive of <a href="/vk/posts_mega_view">over 67,000 posts</a>, dating back to the beginning of February 2022.</p>
+
+  <p>Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content,
+  allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold.</p>
+  
+  <p>Sofisticated researchers can run this tool locally, against their own targets of research and even perform their
+  detailed analysis offline through the <a href="https://datasette.io/">Datasette SQL interface</a>.</p>
+
+  <p>For more information on Spevktator and installation / usage instructions see the <a href="https://github.com/MischaU8/spevktator#readme">README on GitHub</a></>
+
+source: Spevktator GitHub
+source_url: https://github.com/MischaU8/spevktator#scraping-your-own-data
+databases:
+  vk:
+    tables:
+      posts:
+        size: 50
+        sort_desc: date_utc
+      posts_entities_done:
+        hidden: true
+      scrape_log:
+        hidden: true
+    queries:
+      posts_search_ru:
+        sql: |-
+          select *
+          from posts_mega_view
+          where text like '%' || :text_ru || '%' order by date_utc desc;
+        title: Search text in Russian
+        description_html: |-
+          <p>This demonstrates <em>basic</em> LIKE search on the `text` column.</p>
+      posts_search_en:
+        sql: |-
+          select *
+          from posts_mega_view
+          where text_en like '%' || :text_en || '%' order by date_utc desc;
+        title: Search text in English
+        description_html: |-
+          <p>This demonstrates <em>basic</em> LIKE search on the `text_en` column.</p>
