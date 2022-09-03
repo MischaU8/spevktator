@@ -506,6 +506,14 @@ def ensure_tables(db):
                 ("id", "posts", "id"),
             ],
         )
+    if "posts_entities_done" not in db.table_names():
+        db["posts_entities_done"].create(
+            {"id": str},
+            pk="id",
+            foreign_keys=[
+                ("id", "posts", "id"),
+            ],
+        )
     if "posts_sentiment" not in db.table_names():
         db["posts_sentiment"].create(
             {
