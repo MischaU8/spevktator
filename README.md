@@ -1,4 +1,4 @@
-# Spevktator - OSINT tool to collect and analyse public VK community wall posts
+# Spevktator:  OSINT analysis tool for VK
 
 [![Python](https://img.shields.io/badge/python-v3.9%20%7C%20v3.10-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette/blob/main/LICENSE)
@@ -8,15 +8,30 @@ Mischa -  [Github profile](https://github.com/MischaU8)
 Morsaki - [Medium blog](https://medium.com/@rosa.noctis532)
 
 ## Tool Description
-Spevktator provides a combined live feed of 5 popular Russian news channels on VK, along with translations, sentiment analysis and visualisation tools, all of which is accessible online, from anywhere. We currently have an archive of over 65,000 posts, dating back to the beginning of February 2022.
+Spevktator provides a combined live feed of 5 popular Russian news channels on VK, along with translations, sentiment analysis and visualisation tools, all of which is accessible online, from anywhere. We currently have an archive of over 67,000 posts, dating back to the beginning of February 2022.
 
-Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content, allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold. 
+Originally, it was created to help research domestic Russian propaganda narratives, but can also act as a monitoring hub for VK media content, allowing researchers and journalists to stay up to date on disinformation, even as chaotic events unfold.
+
+Sofisticated researchers can run this tool locally, against their own targets of research and even perform their detailed analysis offline through an SQL interface.
 
 ## Online Demo
+
+In our public demo, we collect posts from 5 popular Russian news channels on VK (`life`, `mash`, `nws_ru`, `ria` and `tassagency`).
+
+Explore the posts, together with sentiment analysis, metrics and English translation:
+
 https://spevktator.io/vk/posts_mega_view
 
+Some more examples:
+
+Mentions of "Ukraine" per week, together with average sentiment and total number of views
+
+https://spevktator.io/vk?sql=select+strftime%28%27%25Y-%25W%27%2C+date_utc%29+as+week%2C+count%28*%29+as+nr_posts%2C+round%28avg%28sentiment%29%2C+2%29+as+avg_sentiment%2C+sum%28views%29+from+posts_mega_view+where+text_en+like+%27%25Ukraine%25%27+group+by+week+order+by+week#g.mark=circle&g.x_column=week&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=avg_sentiment&g.size_column=sum(views)
+
+
 ## Installation
-To install and run spevktator, you need at least Python 3.9 and a couple Python libraries which you can install with `pip`.
+
+To install and run Spevktator locally, you need at least Python 3.9 and a couple Python libraries which you can install with `pip`.
 
 ### Development build (cloning git master branch):
 
@@ -42,7 +57,8 @@ xz -d data/vk.db.xz
 
 ## Usage
 
-Run the Datasette server to explore the data:
+Spevktator uses the open source multi-tool [Datasette](https://datasette.io/) for exploring and publishing the collected data.
+Run the Datasette server to explore the collected posts:
 
 ```bash
 datasette data/
@@ -74,6 +90,7 @@ This section includes any additional information that you want to mention about 
 - UI notification when data has been updated
 - User authentication for non-public information & configuration UI
 - More robust installation instructions for various platforms (Windows, Docker)
+- Packaging and distribution via pypi.
 
 ### Current limitations
 
@@ -85,6 +102,7 @@ This section includes any additional information that you want to mention about 
 - Limited error handling and data loss recovery.
 
 ### Motivation for design / architecture decisions
+
 The ability to conduct keyword searches with local data is much superior to any online search. I no longer need to worry about revealing details of my investigation to any third party. The online web interface is provided for demo purposes, but not required.
 
 Setting up a data pipeline isn’t trivial, besides getting the raw data a lot of value is added with optional related data such as metrics, sentiment, translation and named-entity extraction.
