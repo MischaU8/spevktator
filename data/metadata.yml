@@ -20,12 +20,16 @@ description_html: |-
   <ul>
   <li>
   <a href="/vk?sql=select+strftime%28%27%25Y-%25W%27%2C+date_utc%29+as+week%2C+count%28*%29+as+nr_posts%2C+round%28avg%28sentiment%29%2C+2%29+as+avg_sentiment%2C+sum%28views%29+from+posts_mega_view+where+text_en+like+%27%25Ukraine%25%27+group+by+week+order+by+week#g.mark=circle&g.x_column=week&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=avg_sentiment&g.size_column=sum(views)">Mentions of "Ukraine" per week, together with average sentiment and total number of views</a>
-
+  </li>
   <li>
-  <a href="https://spevktator.io/vk?sql=with+himars+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25HIMARS%25%22+group+by+day%0D%0A%29%2C%0D%0Amlrs+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MLRS%25%22+group+by+day%0D%0A%29%2C%0D%0Asam+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25S-300%25%22+group+by+day%0D%0A%29%2C%0D%0Acombined+as+%28%0D%0A++++select+%22HIMARS%22+as+weapon_type%2C+*+from+himars%0D%0A++++union+select+%22MLRS%22%2C+*+from+mlrs%0D%0A++++union+select+%22SAM%22%2C+*+from+sam%0D%0A%29+select+*+from+combined+order+by+day%0D%0A#g.mark=bar&g.x_column=day&g.x_type=temporal&g.y_column=cnt&g.y_type=quantitative&g.color_column=weapon_type">Which weapon systems are most often mentioned</a>
-
+  <a href="/vk?sql=with+himars+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25HIMARS%25%22+group+by+day%0D%0A%29%2C%0D%0Amlrs+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MLRS%25%22+group+by+day%0D%0A%29%2C%0D%0Asam+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25S-300%25%22+group+by+day%0D%0A%29%2C%0D%0Acombined+as+%28%0D%0A++++select+%22HIMARS%22+as+weapon_type%2C+*+from+himars%0D%0A++++union+select+%22MLRS%22%2C+*+from+mlrs%0D%0A++++union+select+%22SAM%22%2C+*+from+sam%0D%0A%29+select+*+from+combined+order+by+day%0D%0A#g.mark=bar&g.x_column=day&g.x_type=temporal&g.y_column=cnt&g.y_type=quantitative&g.color_column=weapon_type">Which weapon systems are most often mentioned</a>
+  </li>
   <li>
-  <a href="https://spevktator.io/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative">When is the Moskva cruiser in the news</a>
+  <a href="/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative">When is the Moskva cruiser in the news</a>
+  </li>
+  <li>
+  <a href="/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1">Related entities to ЗАЭС (ZZNP)</a>
+  </li>
   </ul>
 
 about: Spevktator GitHub
@@ -59,3 +63,25 @@ databases:
         title: Search text in English
         description_html: |-
           <p>This demonstrates <em>basic</em> LIKE search on the `text_en` column.</p>
+      related_entities_ru:
+        sql: |-
+          select
+            ex.name, et.value, count(*) as post_cnt
+          from
+            entities e
+            join posts_entities pe
+            join posts_entities pex
+            join entities ex
+            join entity_types et
+            on e.id = pe.entity
+            and pe.id = pex.id
+            and pe.entity != pex.entity
+            and pex.entity = ex.id
+            and ex.type = et.id
+          where
+            e.name = :entity_name
+          group by ex.id
+          order by post_cnt desc
+        title: Search related entities in Russian
+        description_html: |-
+          <p>This demonstrates doing a network relationship search on entities (persons, organisations and locations). Try: ЗАЭС</p>
