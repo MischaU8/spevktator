@@ -13,9 +13,9 @@ Nothing was posted on VK about the ZNPP until the 12th of June, where TASS sugge
 It’s interesting to note the quantity of content being produced by outlets in relation to each other. Both of the top two channels are state controlled, but unlike TASS, Life isn’t overtly owned by the government, rather controlled through subsidiaries. As such, TASS could be considered more ‘trustworthy’ by the domestic population, due to its supposed proximity to the government and subject matter experts, hence why Russia are using it as their primary avenue for news about the ZNPP.
 
 <img src="russian_coverage_znpp2.png" title="Chart showing content output that included the ZNPP" hspace="20" />
+
+<sub>Figure 2: [Chart showing content output that included the ZNPP](https://spevktator.io/vk?sql=select+domain%2C+count%28*%29+as+nr_posts+from+posts+where+%22text%22+like+%3Ap0+group+by+domain+order+by+nr_posts+desc&p0=%25%D0%97%D0%90%D0%AD%D0%A1%25#g.mark=bar&g.x_column=domain&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=domain).</sub>
+
 <img src="russian_coverage_znpp3.png" title="Chart showing total content output" hspace="20" />
 
-<sub>Figure 2: [Chart showing content output that included the ZNPP](https://spevktator.io/vk?sql=select+domain%2C+count%28*%29+as+nr_posts+from+posts+where+%22text%22+like+%3Ap0+group+by+domain+order+by+nr_posts+desc&p0=%25%D0%97%D0%90%D0%AD%D0%A1%25#g.mark=bar&g.x_column=domain&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=domain).</sub> <sub>Figure 3: [Chart showing total content output](https://spevktator.io/vk?sql=select+domain%2C+count%28*%29+as+nr_posts+from+posts+group+by+domain+order+by+nr_posts+desc#g.mark=bar&g.x_column=domain&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=domain)</sub>
-
-
-
+ <sub>Figure 3: [Chart showing total content output](https://spevktator.io/vk?sql=select+domain%2C+count%28*%29+as+nr_posts+from+posts+group+by+domain+order+by+nr_posts+desc#g.mark=bar&g.x_column=domain&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=domain)</sub>
