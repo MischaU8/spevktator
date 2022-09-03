@@ -851,7 +851,7 @@ standard = ["colorama (>=0.4)", "httptools (>=0.4.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "3a7e132c8a77d797cde481729ba01ebe51a3deaacf957b610b41aa078d32ace1"
+content-hash = "541155938b1f81ac8cc271ea400d27f2b8840a6ae96b72d2bdde0aba6ab31590"
 
 [metadata.files]
 aiofiles = [
