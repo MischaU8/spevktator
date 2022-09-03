@@ -19,7 +19,7 @@ Sophisticated researchers can run this tool locally, against their own targets o
 
 In our public demo, we collect posts from 5 popular Russian news channels on VK (`life`, `mash`, `nws_ru`, `ria` and `tassagency`).
 
-Explore the posts, together with sentiment analysis, metrics and English translation:
+Explore their posts, together with sentiment analysis, metrics and English translation:
 
 https://spevktator.io/vk/posts_mega_view
 
@@ -57,7 +57,7 @@ Install the Python dependencies, this will take a while:
 pip3 install .
 ```
 
-To get you started, download and decompress our VK sqlite database dump (23MB). This includes all public VK wall posts by `life`, `mash`, `nws_ru`, `ria` and `tassagency` between the period of `2022-02-01` and `2022-09-03`. But you can also decide to scrape your own data, see below.
+To get you started, download and decompress our VK sqlite database dump (~25MB). This includes all public VK wall posts by `life`, `mash`, `nws_ru`, `ria` and `tassagency` between the period of `2022-02-01` and `2022-09-03`. But you can also decide to scrape your own data, see below.
 
 ```bash
 wget -v -O data/vk.db.xz https://spevktator.io/static/vk_2022-09-03_lite.db.xz
@@ -79,11 +79,90 @@ Learn more about Datasette and SQL on https://datasette.io/tutorials
 
 ## Scraping your own data
 
-TODO
+After following the above installation instructions, you can use the command line program `spevktator` to collect your own datasets from VK and save them to a sqlite database.
+
+### Generic command line usage information
 
 ```bash
-spevktator --help
+$ spevktator --help
+
+Usage: spevktator [OPTIONS] COMMAND [ARGS]...
+
+  Save wall posts from VK communities to a SQLite database
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  backfill                Retrieve the backlog of wall posts from the VK...
+  extract-named-entities  Extract named-entities from text
+  fetch                   Retrieve all wall posts from the VK communities...
+  install                 Download and install models, create database
+  listen                  Continuously retrieve all wall posts from the...
+  rescrape                Rescrape HTML pages from the scrape_log
+  sentiment               Perform dostoevsky (RU) sentiment analysis on...
+  stats                   Show statistics for the given database
+  translate-entities      Translate entities from RU to EN-US
+  translate-posts         Translate posts from RU to EN-US
 ```
+
+### Inspect the status of an existing database
+
+```bash
+$ spevktator stats data/vk.db
+
+domain        nr_posts  first                last
+----------  ----------  -------------------  -------------------
+life             26125  2022-01-31T21:05:00  2022-09-03T15:45:00
+mash              3309  2022-01-31T17:52:00  2022-08-31T15:01:00
+nws_ru            3528  2022-01-31T13:00:00  2022-08-31T20:05:00
+ria              10198  2022-01-31T22:03:00  2022-09-01T05:01:00
+tassagency       23890  2022-01-31T22:45:00  2022-09-01T05:15:00
+```
+
+### Install RuSentement models and create a (new) database
+
+```bash
+$ spevktator install data/myproject.db
+
+Downloading Dostoevsky sentiment model... DONE
+Creating database...DONE
+```
+
+### Continuously listen for new posts to the channels (domains) on VK
+
+You can specify one or more domains (the VK jargon for channels / groups) to monitor:
+
+```bash
+$ spevktator listen data/myproject.db vkusnoitochka
+
+Scraping VK domain 'vkusnoitochka'... https://m.vk.com/vkusnoitochka
+POST vkusnoitochka/-213845894_28 2022-09-01T13:27:00 added
+POST vkusnoitochka/-213845894_27 2022-08-29T16:33:00 added
+POST vkusnoitochka/-213845894_26 2022-08-08T18:03:00 added
+POST vkusnoitochka/-213845894_25 2022-08-06T21:25:00 added
+POST vkusnoitochka/-213845894_24 2022-08-06T21:23:00 added
+2022-09-03 18:51:32.327117 posts_added=5 last_post_added=True earliest_post_date=2022-08-06T21:23:00 page: 1 / 5
+Extracting named-entities up to 5 posts...
+  [####################################]  100%
+0 extracted out of 5 posts
+next url will be https://m.vk.com/vkusnoitochka?offset=5&own=1
+Scraping VK domain 'vkusnoitochka'... https://m.vk.com/vkusnoitochka?offset=5&own=1
+POST vkusnoitochka/-213845894_23 2022-08-06T21:23:00 added
+POST vkusnoitochka/-213845894_22 2022-07-10T21:07:00 added
+```
+
+Optional commandline arguments are:
+- `--deepl-auth-key` (or `DEEPL_AUTH_KEY` env variable) to provide your DeepL translation API key. 
+- `--spevktator-proxy` (or `SPEVKTATOR_PROXY` env variable) the HTTP / HTTPS proxy to use to connect to VK.
+
+### Fetch historic posts
+
+Some other `spevktator` commands to fetch historic posts from VK:
+
+- `backfill` - Retrieve the backlog of wall posts from the VK, until a certain date. See `spevktator backfill --help`
+- `fetch` - Retrieve all wall posts from the VK communities. See `spevktator fetch --help`
 
 ## Additional Information
 This section includes any additional information that you want to mention about the tool, including:
@@ -114,6 +193,6 @@ This section includes any additional information that you want to mention about 
 
 The ability to conduct keyword searches with local data is much superior to any online search. I no longer need to worry about revealing details of my investigation to any third party. The online web interface is provided for demo purposes, but not required.
 
-Setting up a data pipeline isn’t trivial, besides getting the raw data a lot of value is added with optional related data such as metrics, sentiment, translation and named-entity extraction.
+Setting up a data pipeline isn’t trivial, besides getting the raw data a lot of value is added with optional related data such as viewer metrics, sentiment, translation and named-entity extraction.
 
-This tool is modular, the data can be exported in various file formats (CSV, TSV, JSON) through [sqlite-utils](https://sqlite-utils.datasette.io/) while being stored in a very powerful and accessible database format (sqlite).
+This tool is modular, the data can be exported in various file formats (CSV, TSV, JSON) through [sqlite-utils](https://sqlite-utils.datasette.io/) while being stored in a very powerful and accessible database format (sqlite). Instead of reinventing the wheel for data exploration and visualisation, it builds on existing opensource tooling, such as Datasette.
