@@ -24,9 +24,16 @@ https://spevktator.io/vk/posts_mega_view
 
 Some more examples:
 
-Mentions of "Ukraine" per week, together with average sentiment and total number of views
-
+- [Mentions of "Ukraine" per week, together with average sentiment and total number of views](
 https://spevktator.io/vk?sql=select+strftime%28%27%25Y-%25W%27%2C+date_utc%29+as+week%2C+count%28*%29+as+nr_posts%2C+round%28avg%28sentiment%29%2C+2%29+as+avg_sentiment%2C+sum%28views%29+from+posts_mega_view+where+text_en+like+%27%25Ukraine%25%27+group+by+week+order+by+week#g.mark=circle&g.x_column=week&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=avg_sentiment&g.size_column=sum(views)
+)
+- [Which weapon systems are most often mentioned](
+https://spevktator.io/vk?sql=with+himars+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25HIMARS%25%22+group+by+day%0D%0A%29%2C%0D%0Amlrs+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MLRS%25%22+group+by+day%0D%0A%29%2C%0D%0Asam+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25S-300%25%22+group+by+day%0D%0A%29%2C%0D%0Acombined+as+%28%0D%0A++++select+%22HIMARS%22+as+weapon_type%2C+*+from+himars%0D%0A++++union+select+%22MLRS%22%2C+*+from+mlrs%0D%0A++++union+select+%22SAM%22%2C+*+from+sam%0D%0A%29+select+*+from+combined+order+by+day%0D%0A#g.mark=bar&g.x_column=day&g.x_type=temporal&g.y_column=cnt&g.y_type=quantitative&g.color_column=weapon_type
+)
+- [When is the Moskva cruiser in the news](
+https://spevktator.io/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative
+)
+
 
 
 ## Installation
