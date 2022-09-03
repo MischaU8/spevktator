@@ -55,10 +55,10 @@ Install the Python dependencies, this will take a while:
 pip3 install .
 ```
 
-To get you started, download and decompress our VK sqlite database dump (23MB). This includes all public VK wall posts by `life`, `mash`, `nws_ru`, `ria` and `tassagency` between the period of `2022-02-01` and `2022-09-02`. But you can also decide to scrape your own data, see below.
+To get you started, download and decompress our VK sqlite database dump (23MB). This includes all public VK wall posts by `life`, `mash`, `nws_ru`, `ria` and `tassagency` between the period of `2022-02-01` and `2022-09-03`. But you can also decide to scrape your own data, see below.
 
 ```bash
-wget -v -O data/vk.db.xz https://spevktator.io/static/vk_2022-09-02_lite.db.xz
+wget -v -O data/vk.db.xz https://spevktator.io/static/vk_2022-09-03_lite.db.xz
 xz -d data/vk.db.xz
 ```
 
