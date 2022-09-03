@@ -73,15 +73,15 @@ Run the Datasette server to explore the collected posts:
 datasette data/
 ```
 
-Visit the webinterface on http://127.0.0.1:8001
+Visit the webinterface on http://127.0.0.1:8001 or explore our public demo on https://spevktator.io/
 
 Learn more about Datasette and SQL on https://datasette.io/tutorials
 
 ## Scraping your own data
 
-After following the above installation instructions, you can use the command line program `spevktator` to collect your own datasets from VK and save them to a sqlite database.
+After following the above installation instructions, you can use the command line tool `spevktator` to collect your own datasets from VK and save them to a sqlite database.
 
-### Generic command line usage information
+### Generic command line usage
 
 ```bash
 $ spevktator --help
@@ -153,18 +153,19 @@ POST vkusnoitochka/-213845894_23 2022-08-06T21:23:00 added
 POST vkusnoitochka/-213845894_22 2022-07-10T21:07:00 added
 ```
 
-Optional commandline arguments are:
+Optional commandline arguments for `listen` are:
 - `--deepl-auth-key` (or `DEEPL_AUTH_KEY` env variable) to provide your DeepL translation API key. 
 - `--spevktator-proxy` (or `SPEVKTATOR_PROXY` env variable) the HTTP / HTTPS proxy to use to connect to VK.
 
-### Fetch historic posts
+### Fetch historic posts & backfill your database
 
 Some other `spevktator` commands to fetch historic posts from VK:
 
-- `backfill` - Retrieve the backlog of wall posts from the VK, until a certain date. See `spevktator backfill --help`
-- `fetch` - Retrieve all wall posts from the VK communities. See `spevktator fetch --help`
+- `backfill` - Retrieve the backlog of wall posts from the VK, until a certain date. See `spevktator backfill --help` for available options to restrict the data to be downloaded.
+- `fetch` - Retrieve all wall posts from the VK communities. See `spevktator fetch --help` for available options to restrict the data to be downloaded.
 
 ## Additional Information
+
 This section includes any additional information that you want to mention about the tool, including:
 - Potential next steps for the tool (i.e. what you would implement if you had more time)
 - Any limitations of the current implementation of the tool
@@ -179,15 +180,17 @@ This section includes any additional information that you want to mention about 
 - User authentication for non-public information & configuration UI
 - More robust installation instructions for various platforms (Windows, Docker)
 - Packaging and distribution via pypi.
+- Integrate with https://observablehq.com/ notebooks.
 
 ### Current limitations
 
 - Only passive monitoring is performed, no VK account is needed, so private groups won’t be scraped.
-- Comments and other personal information isn’t collected due to GDPR reasons.
+- Comments and other personal information isn’t collected due to GDPR.
 - Sentiment prediction is based on RuSentiment and has moderate quality.
 - Post metrics (shares, likes, views) are only tracked for a limited duration (last 5 posts).
 - Post text longer than 2500 characters are not translated.
 - Limited error handling and data loss recovery.
+- The user interface will require SQL knowledge for more advanced usage.
 
 ### Motivation for design / architecture decisions
 
