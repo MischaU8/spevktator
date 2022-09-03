@@ -316,7 +316,7 @@ def translate_entities(
     )
     if limit:
         sql += f" limit {limit}"
-    click.echo(sql)
+
     params = dict()
     rows = db.query(sql, params)
 
@@ -325,7 +325,7 @@ def translate_entities(
     translation_count = 0
     click.echo(f"Translating up to {limit} entities...")
     with click.progressbar(rows, length=count) as bar:
-        for chunk in chunks(bar, 10):
+        for chunk in chunks(bar, 50):
             chunk = list(chunk)
             texts_ru = [row["name"] for row in chunk]
 
