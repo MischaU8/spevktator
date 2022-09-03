@@ -1,7 +1,8 @@
 # Spevktator:  OSINT analysis tool for VK
 
-[![Python](https://img.shields.io/badge/python-v3.9%20%7C%20v3.10-blue)](https://www.python.org/)
+https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette/blob/main/LICENSE)
+[![Test](https://github.com/MischaU8/spevktator/actions/workflows/test.yml/badge.svg)](https://github.com/MischaU8/spevktator/actions/workflows/test.yml)
 
 ## Team Members
 Mischa -  [Github profile](https://github.com/MischaU8)
