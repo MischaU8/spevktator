@@ -30,6 +30,9 @@ description_html: |-
   <li>
   <a href="/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1">Related entities to ЗАЭС (ZZNP)</a>
   </li>
+  <li>
+  <a href="/vk/related_entities_en?entity_name=ZZNP&_hide_sql=1">Related entities to ZZNP (ЗАЭС)</a>
+  </li>
   </ul>
 
 about: Spevktator GitHub
@@ -66,7 +69,7 @@ databases:
       related_entities_ru:
         sql: |-
           select
-            ex.name, et.value, count(*) as post_cnt
+            ex.name, ex.name_en, et.value, count(*) as post_cnt
           from
             entities e
             join posts_entities pe
@@ -85,3 +88,25 @@ databases:
         title: Search related entities in Russian
         description_html: |-
           <p>This demonstrates doing a network relationship search on entities (persons, organisations and locations). Try: ЗАЭС</p>
+      related_entities_en:
+        sql: |-
+          select
+            ex.name, ex.name_en, et.value, count(*) as post_cnt
+          from
+            entities e
+            join posts_entities pe
+            join posts_entities pex
+            join entities ex
+            join entity_types et
+            on e.id = pe.entity
+            and pe.id = pex.id
+            and pe.entity != pex.entity
+            and pex.entity = ex.id
+            and ex.type = et.id
+          where
+            e.name_en = :entity_name
+          group by ex.id
+          order by post_cnt desc
+        title: Search related entities in English
+        description_html: |-
+          <p>This demonstrates doing a network relationship search on entities (persons, organisations and locations). Try: ZNPP</p>
