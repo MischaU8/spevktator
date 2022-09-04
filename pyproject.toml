@@ -23,6 +23,7 @@ deepl = "^1.9.0"
 datasette-block-robots = "^1.1"
 datasette-gzip = "^0.2"
 natasha = "^1.4.0"
+datasette-template-sql = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

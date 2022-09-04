@@ -231,6 +231,20 @@ datasette = "*"
 test = ["pytest-asyncio", "pytest"]
 
 [[package]]
+name = "datasette-template-sql"
+version = "1.0.2"
+description = "Datasette plugin for executing SQL queries from templates"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+datasette = ">=0.54"
+
+[package.extras]
+test = ["sqlite-utils", "pytest-asyncio", "pytest"]
+
+[[package]]
 name = "datasette-vega"
 version = "0.6.2"
 description = "A Datasette plugin that provides tools for generating charts using Vega"
@@ -963,7 +977,7 @@ pymorphy2 = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "98c7c290385dabe761fca48a2855af84cce4a19605d5736a2f4465370f527bdf"
+content-hash = "4d3a10ea423de51899d19e03465c7f33205789a440d7cbe0373efa13d892f1f8"
 
 [metadata.files]
 aiofiles = [
@@ -1068,6 +1082,10 @@ datasette-block-robots = [
 datasette-gzip = [
     {file = "datasette-gzip-0.2.tar.gz", hash = "sha256:6ae8714e9fbc4d71b0a64d7833c13c641d9a98a615d57eaf4ad2abcb1658f0fd"},
     {file = "datasette_gzip-0.2-py3-none-any.whl", hash = "sha256:d24d252234f5652a9e8f65a48090c816ab9a8af7ddc512a5d9363c55fbf5cd64"},
+]
+datasette-template-sql = [
+    {file = "datasette-template-sql-1.0.2.tar.gz", hash = "sha256:664c795c319e820be635803198b505dc01621324a8b4627b269e4c174563e8c3"},
+    {file = "datasette_template_sql-1.0.2-py3-none-any.whl", hash = "sha256:194514201e8ce3489040e89a7887d8144bf27fd32580649a904be31de2cd0752"},
 ]
 datasette-vega = [
     {file = "datasette_vega-0.6.2-py3-none-any.whl", hash = "sha256:6aca6a40f0b244d6d05548bfff94a99f0ef96bd5b89ade241f0d389f7a01a063"},

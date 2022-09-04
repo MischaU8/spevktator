@@ -1,0 +1,71 @@
+{% include "default:_table.html" %}
+
+{% if primary_key_values %}
+
+{% set post_id = primary_key_values|first %}
+{% set translations = sql("select text_en from posts_translation where id = ?", [post_id]) %}
+{% if translations %}
+<h3>Translation</h3>
+{% for translation in translations %}
+    <p>{{ translation.text_en}}</p>
+{% endfor %}
+{% else %}
+<h3>No Translation found</h3>
+{% endif %}
+
+{% set metrics = sql("select * from posts_metrics where id = ?", [post_id]) %}
+{% if metrics %}
+<h3>Metrics</h3>
+<div class="table-wrapper">
+<table class="rows-and-columns">
+    <thead>
+        <tr>
+            <th>likes</th><th>shares</th><th>views</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for metric in metrics %}
+        <tr>
+            <td class="type-int">{{ metric.likes }}</td>
+            <td class="type-int">{{ metric.shares }}</td>
+            <td class="type-int">{{ metric.views }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<h3>No Metrics found</h3>
+{% endif %}
+
+{% set sentiments = sql("select * from posts_sentiment where id = ?", [post_id]) %}
+{% if sentiments %}
+<h3>Sentiment</h3>
+<div class="table-wrapper">
+<table class="rows-and-columns">
+    <thead>
+        <tr>
+            <th>combined</th><th>positive</th><th>negative</th><th>neutral</th><th>skip</th><th>speech</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sentiment in sentiments %}
+        <tr>
+            <td class="type-float"><strong>{{ sentiment.positive - sentiment.negative }}</strong></td>
+            <td class="type-float">{{ sentiment.positive }}</td>
+            <td class="type-float">{{ sentiment.negative }}</td>
+            <td class="type-float">{{ sentiment.neutral }}</td>
+            <td class="type-float">{{ sentiment.skip }}</td>
+            <td class="type-float">{{ sentiment.speech }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<h3>No Sentiment found</h3>
+{% endif %}
+
+
+{% endif %}
+
