@@ -9,7 +9,7 @@ description_html: |-
   <em><a href="https://github.com/MischaU8/spevktator/blob/master/research/Russian%20Coverage%20of%20the%20ZNPP.md">Documenting Russian Coverage of the ZNPP</a></em> by Morsaki.</p>
   
   <p>Sophisticated researchers can run this tool locally, against their own targets of research and even perform their
-  detailed analysis offline through the <a href="/vk">Datasette SQL interface</a>.</p>
+  detailed analysis offline through the <a href="/vk">Datasette SQL interface</a> or Observable Notebook.</p>
 
   <p>See <a href="https://github.com/MischaU8/spevktator#readme">GitHub</a> for more information on Spevktator and installation &amp; usage instructions</a></>
 
