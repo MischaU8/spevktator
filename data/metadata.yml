@@ -34,6 +34,10 @@ description_html: |-
   <li>
   What are related entities to <a href="/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1">ЗАЭС</a> (or in English <a href="/vk/related_entities_en?entity_name=ZNPP&_hide_sql=1">ZNPP</a>)?
   </li>
+  <li>
+  <a href="https://observablehq.com/@mischau8/coverage-of-hackers-by-russian-media-on-vk">Coverage of "hackers" by Russian media on VK</a>, an analysis using Observable Notebook.
+  </li>
+
   </ul>
 
 about: Spevktator GitHub
