@@ -25,17 +25,19 @@ https://spevktator.io/vk/posts_mega_view
 
 Some more examples:
 
-- [Mentions of "Ukraine" per week, together with average sentiment and total number of views](
+- [How often is "Ukraine" mentioned per week, together with average sentiment and total number of views?](
 https://spevktator.io/vk?sql=select+strftime%28%27%25Y-%25W%27%2C+date_utc%29+as+week%2C+count%28*%29+as+nr_posts%2C+round%28avg%28sentiment%29%2C+2%29+as+avg_sentiment%2C+sum%28views%29+from+posts_mega_view+where+text_en+like+%27%25Ukraine%25%27+group+by+week+order+by+week#g.mark=circle&g.x_column=week&g.x_type=ordinal&g.y_column=nr_posts&g.y_type=quantitative&g.color_column=avg_sentiment&g.size_column=sum(views)
 )
-- [Which weapon systems are most often mentioned](
+- [Which weapon systems are most often mentioned?](
 https://spevktator.io/vk?sql=with+himars+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25HIMARS%25%22+group+by+day%0D%0A%29%2C%0D%0Amlrs+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MLRS%25%22+group+by+day%0D%0A%29%2C%0D%0Asam+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28*%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25S-300%25%22+group+by+day%0D%0A%29%2C%0D%0Acombined+as+%28%0D%0A++++select+%22HIMARS%22+as+weapon_type%2C+*+from+himars%0D%0A++++union+select+%22MLRS%22%2C+*+from+mlrs%0D%0A++++union+select+%22SAM%22%2C+*+from+sam%0D%0A%29+select+*+from+combined+order+by+day%0D%0A#g.mark=bar&g.x_column=day&g.x_type=temporal&g.y_column=cnt&g.y_type=quantitative&g.color_column=weapon_type
 )
-- [When is the Moskva cruiser in the news](
+- [Which Aircrafts are most often mentioned?](
+https://spevktator.io/vk?sql=with+mig29+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28%2A%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MiG-29%25%22+group+by+day%0D%0A%29%2C%0D%0Amig31+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28%2A%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25MiG-31%25%22+group+by+day%0D%0A%29%2C%0D%0Asu25+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28%2A%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25Su-25%25%22+group+by+day%0D%0A%29%2C%0D%0Asu35+as+%28%0D%0A++++select+date%28date_utc%29+as+day%2C+count%28%2A%29+as+cnt+from+posts+p+join+posts_translation+pt+on+p.id+%3D+pt.id+where+text_en+like+%22%25Su-35%25%22+group+by+day%0D%0A%29%2C%0D%0Acombined+as+%28%0D%0A++++select+%22MiG-29%22+as+aircraft%2C+%2A+from+mig29%0D%0A++++union+select+%22MiG-31%22%2C+%2A+from+mig31%0D%0A++++union+select+%22Su-25%22%2C+%2A+from+su25%0D%0A++++union+select+%22Su-35%22%2C+%2A+from+su35%0D%0A%29+select+%2A+from+combined+order+by+day%0D%0A&_hide_sql=1#g.mark=bar&g.x_column=day&g.x_type=temporal&g.y_column=cnt&g.y_type=quantitative&g.color_column=aircraft
+)
+- [When is the "Moskva cruiser" in the news?](
 https://spevktator.io/vk?sql=select+date%28date_utc%29+as+day%2C+count%28*%29+from+posts+p+join+posts_translation+t+on+p.id%3Dt.id+where+t.rowid+in+%28select+rowid+from+posts_translation_fts+where+posts_translation_fts+match+escape_fts%28%3Asearch%29%29+group+by+day+order+by+day+limit+101&search=Moskva+cruiser#g.mark=bar&g.x_column=day&g.x_type=ordinal&g.y_column=count(*)&g.y_type=quantitative
 )
-- [Related entities to ЗАЭС (ZNPP)](https://spevktator.io/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1)
-- [Related entities to ZNPP (ЗАЭС)](https://spevktator.io/vk/related_entities_en?entity_name=ZNPP&_hide_sql=1)
+- What are related entities to [ЗАЭС](https://spevktator.io/vk/related_entities_ru?entity_name=ЗАЭС&_hide_sql=1) (or in English [ZNPP](https://spevktator.io/vk/related_entities_en?entity_name=ZNPP&_hide_sql=1))
 
 
 ## Installation
