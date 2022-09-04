@@ -352,6 +352,17 @@ flake8 = ">=3.0.0"
 tomli = "*"
 
 [[package]]
+name = "freezegun"
+version = "1.2.2"
+description = "Let your Python tests travel through time"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+python-dateutil = ">=2.7"
+
+[[package]]
 name = "h11"
 version = "0.12.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -977,7 +988,7 @@ pymorphy2 = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "4d3a10ea423de51899d19e03465c7f33205789a440d7cbe0373efa13d892f1f8"
+content-hash = "b0d4f9abcc48730e7b968f0690bcf90a81d6b8e701bd9a97970ca1cd2e5507fc"
 
 [metadata.files]
 aiofiles = [
@@ -1119,6 +1130,10 @@ flake8 = [
 flake8-black = [
     {file = "flake8-black-0.3.3.tar.gz", hash = "sha256:8211f5e20e954cb57c709acccf2f3281ce27016d4c4b989c3e51f878bb7ce12a"},
     {file = "flake8_black-0.3.3-py3-none-any.whl", hash = "sha256:7d667d0059fd1aa468de1669d77cc934b7f1feeac258d57bdae69a8e73c4cd90"},
+]
+freezegun = [
+    {file = "freezegun-1.2.2-py3-none-any.whl", hash = "sha256:ea1b963b993cb9ea195adbd893a48d573fda951b0da64f60883d7e988b606c9f"},
+    {file = "freezegun-1.2.2.tar.gz", hash = "sha256:cd22d1ba06941384410cd967d8a99d5ae2442f57dfafeff2fda5de8dc5c05446"},
 ]
 h11 = [
     {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},

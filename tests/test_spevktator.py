@@ -1,5 +1,6 @@
 import pathlib
 import pytest
+from freezegun import freeze_time
 from click.testing import CliRunner
 from pytest_httpx import HTTPXMock
 import sqlite_utils
@@ -11,6 +12,7 @@ def vk_life_html():
     return open(pathlib.Path(__file__).parent / "vk_life.html").read()
 
 
+@freeze_time("2022-09-03")
 def test_spevktator_fetch(tmpdir, vk_life_html, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url="https://m.vk.com/life", html=vk_life_html)
     # httpx_mock.add_exception(httpx.TimeoutException("No httpx_mock match found"))

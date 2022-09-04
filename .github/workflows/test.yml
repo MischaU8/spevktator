@@ -23,7 +23,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install pytest
       run: |
-        pip install pytest pytest-httpx
+        pip install pytest pytest-httpx freezegun
     - name: Install dependencies
       run: |
         pip install -e '.[test]'
