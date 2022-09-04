@@ -18,9 +18,9 @@ jobs:
       name: Configure pip caching
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
     - name: Install pytest
       run: |
         pip install pytest pytest-httpx freezegun
