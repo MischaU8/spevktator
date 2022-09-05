@@ -275,34 +275,43 @@ def translate_posts(
     # Run a count, for the progress bar
     count = utils.get_count(db, sql, params)
     translation_count = 0
-    click.echo(f"Translating up to {limit} posts...")
-    with click.progressbar(rows, length=count) as bar:
-        for chunk in chunks(bar, 10):
-            chunk = list(chunk)
-            texts_ru = [row["text"] for row in chunk]
+    click.echo(f"Translating {count} of max {limit} posts...")
+    try:
+        with click.progressbar(rows, length=count) as bar:
+            for chunk in chunks(bar, 10):
+                chunk = list(chunk)
+                texts_ru = [row["text"] for row in chunk]
 
-            if verbose:
-                click.echo(texts_ru)
+                if verbose:
+                    click.echo(texts_ru)
 
-            result = translator.translate_text(
-                texts_ru, source_lang="RU", target_lang="EN-US"
-            )
-            if verbose:
-                click.echo([item.text for item in result])
+                result = translator.translate_text(
+                    texts_ru, source_lang="RU", target_lang="EN-US"
+                )
+                if verbose:
+                    click.echo([item.text for item in result])
 
-            to_insert = []
-            for i, translation in enumerate(result):
-                to_insert.append({"id": chunk[i]["id"], "text_en": translation.text})
-                translation_count += 1
+                to_insert = []
+                for i, translation in enumerate(result):
+                    to_insert.append(
+                        {"id": chunk[i]["id"], "text_en": translation.text}
+                    )
+                    translation_count += 1
 
-            db[output_table].insert_all(
-                to_insert,
-                pk="id",
-                column_order=("id", "text_en"),
-                foreign_keys=[("id", "posts")],
-            )
+                db[output_table].insert_all(
+                    to_insert,
+                    pk="id",
+                    column_order=("id", "text_en"),
+                    foreign_keys=[("id", "posts")],
+                )
 
-    click.echo(f"{translation_count} posts translated")
+        click.echo(f"{translation_count} posts translated")
+
+    except deepl.exceptions.DeepLException as e:
+        click.secho(
+            (f"DeepL API throws error: {e}"),
+            fg="red",
+        )
 
 
 def translate_entities(
@@ -323,26 +332,33 @@ def translate_entities(
     # Run a count, for the progress bar
     count = utils.get_count(db, sql, params)
     translation_count = 0
-    click.echo(f"Translating up to {limit} entities...")
-    with click.progressbar(rows, length=count) as bar:
-        for chunk in chunks(bar, 50):
-            chunk = list(chunk)
-            texts_ru = [row["name"] for row in chunk]
+    click.echo(f"Translating {count} of max {limit} entities...")
+    try:
+        with click.progressbar(rows, length=count) as bar:
+            for chunk in chunks(bar, 50):
+                chunk = list(chunk)
+                texts_ru = [row["name"] for row in chunk]
 
-            if verbose:
-                click.echo(texts_ru)
+                if verbose:
+                    click.echo(texts_ru)
 
-            result = translator.translate_text(
-                texts_ru, source_lang="RU", target_lang="EN-US"
-            )
-            if verbose:
-                click.echo([item.text for item in result])
+                result = translator.translate_text(
+                    texts_ru, source_lang="RU", target_lang="EN-US"
+                )
+                if verbose:
+                    click.echo([item.text for item in result])
 
-            for i, translation in enumerate(result):
-                db["entities"].update(chunk[i]["id"], {"name_en": translation.text})
-                translation_count += 1
+                for i, translation in enumerate(result):
+                    db["entities"].update(chunk[i]["id"], {"name_en": translation.text})
+                    translation_count += 1
 
-    click.echo(f"{translation_count} entities translated")
+        click.echo(f"{translation_count} entities translated")
+
+    except deepl.exceptions.DeepLException as e:
+        click.secho(
+            (f"DeepL API throws error: {e}"),
+            fg="red",
+        )
 
 
 def extract_named_entities(db: sqlite_utils.Database, limit: int, verbose=False):
