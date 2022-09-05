@@ -274,8 +274,10 @@ def translate_posts(
 
     # Run a count, for the progress bar
     count = utils.get_count(db, sql, params)
-    translation_count = 0
     click.echo(f"Translating {count} of max {limit} posts...")
+    if count == 0:
+        return
+    translation_count = 0
     try:
         with click.progressbar(rows, length=count) as bar:
             for chunk in chunks(bar, 10):
@@ -331,8 +333,10 @@ def translate_entities(
 
     # Run a count, for the progress bar
     count = utils.get_count(db, sql, params)
-    translation_count = 0
     click.echo(f"Translating {count} of max {limit} entities...")
+    if count == 0:
+        return
+    translation_count = 0
     try:
         with click.progressbar(rows, length=count) as bar:
             for chunk in chunks(bar, 50):
