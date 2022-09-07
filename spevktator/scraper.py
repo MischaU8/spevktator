@@ -209,16 +209,17 @@ def fetch_domains(
             timestamp = datetime.datetime.utcnow()
             click.echo(f"Scraping VK domain '{domain}'... {url}")
             r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=proxies)
-            with db.conn:
-                db["scrape_log"].insert(
-                    {
-                        "domain": domain,
-                        "timestamp": timestamp.isoformat(),
-                        "url": url,
-                        "status_code": r.status_code,
-                        "html": r.text.strip(),
-                    },
-                )
+            if r.status_code != 200:
+                with db.conn:
+                    db["scrape_log"].insert(
+                        {
+                            "domain": domain,
+                            "timestamp": timestamp.isoformat(),
+                            "url": url,
+                            "status_code": r.status_code,
+                            "html": r.text.strip(),
+                        },
+                    )
 
             assert r.status_code == 200, r.status_code
             assert r.headers["content-type"] == "text/html; charset=utf-8", r.headers[
