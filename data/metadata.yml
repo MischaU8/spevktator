@@ -115,3 +115,7 @@ databases:
         title: Search related entities in English
         description_html: |-
           <p>This demonstrates doing a network relationship search on entities (persons, organisations and locations). Try: ZNPP</p>
+
+plugins:
+  datasette-block-robots:
+    allow_only_index: true
