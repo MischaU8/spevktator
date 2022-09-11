@@ -25,6 +25,7 @@ VK_BASE_URL = "https://m.vk.com"
 DEFAULT_PAGE_LIMIT = 5
 DEFAULT_DELAY = 5
 DEFAULT_LOOP_DELAY = 300
+ERROR_DELAY = 120
 
 
 @dataclass
@@ -208,7 +209,12 @@ def fetch_domains(
         while True:
             timestamp = datetime.datetime.utcnow()
             click.echo(f"Scraping VK domain '{domain}'... {url}")
-            r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=proxies)
+            try:
+                r = httpx.get(url, headers=DEFAULT_HEADERS, proxies=proxies)
+            except httpx.HTTPError as exc:
+                click.secho(f"HTTP Exception for {exc.request.url} - {exc}", fg="red")
+                time.sleep(ERROR_DELAY)
+                continue
             if r.status_code != 200:
                 with db.conn:
                     db["scrape_log"].insert(
@@ -315,6 +321,7 @@ def translate_posts(
             (f"DeepL API throws error: {e}"),
             fg="red",
         )
+        time.sleep(ERROR_DELAY)
 
 
 def translate_entities(
